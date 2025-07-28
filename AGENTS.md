@@ -39,10 +39,10 @@ Each stage is launched through an **sbatch driver** and may itself spawn job arr
 ```
 Results/Reordering/<MATRIX>/<TECH>_<PARAMSET>/
   ├─ permutation.g              # 1‑based CSR index order
-  └─ results.csv                # single‑row, see §4
+  └─ results.csv                # single‑row, only set the following: matrix infos, reorder infos, reorder time, timestamp.
 ```
 
-* **Immediate post‑processing**: `scripts/csv_helper.py` merges timing with structural metrics (bandwidth, B4/B8/B16 block‑count, block‑density).
+* **Immediate post‑processing**: `scripts/csv_helper.py` calculate structural metrics (bandwidth, B4/B8/B16 block‑count, block‑density) and adds them to the results.csv
 
 ### 2.3 Multiplication Phase
 
