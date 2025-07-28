@@ -18,3 +18,8 @@ By default the matrices and experiment results reside under `Raw_Matrices/` and
 `Results/` inside the repository.  Large deployments can place these folders
 elsewhere by exporting `MATRIX_DIR` and `RESULTS_DIR` before sourcing
 `Programs/exp_config.sh`.
+
+## Installing Reordering Techniques
+
+Run `scripts/bootstrap.sh` to fetch and build external reorderers. Detailed
+instructions for each tool are found in `Programs/Reordering/Techniques/README.md`.
