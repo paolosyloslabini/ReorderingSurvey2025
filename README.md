@@ -23,3 +23,18 @@ elsewhere by exporting `MATRIX_DIR` and `RESULTS_DIR` before sourcing
 
 Run `scripts/bootstrap.sh` to fetch and build external reorderers. Detailed
 instructions for each tool are found in `Programs/Reordering/Techniques/README.md`.
+
+## Python Environment
+
+Helper scripts such as `csv_helper.py` rely on SciPy's sparse matrix
+functions. Create a virtual environment and install the Python
+dependencies before running the pipeline:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+The `requirements.txt` file lists `numpy`, `pandas`, `scipy`,
+`suitesparsegraphblas`, and `py-metis`.
