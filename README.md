@@ -11,3 +11,9 @@ This repository hosts an experimental framework for studying how matrix reorderi
 - `logs/` – Slurm job output.
 
 See `TODO.md` for the current development status and upcoming tasks.
+
+## Configuration
+Paths to the raw matrices and where results should be written are defined in
+`Programs/exp_config.sh`. By default they resolve to directories under the
+repository root, but they can be overridden by setting the `RAW_MATRIX_DIR` and
+`RESULTS_DIR` environment variables before running the pipeline.
