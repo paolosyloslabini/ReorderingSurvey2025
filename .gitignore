@@ -1,0 +1,16 @@
+# Build artifacts
+build/
+
+# Experiment results and logs
+Results/**
+!Results/**/README.md
+logs/**
+!logs/README.md
+
+# Large datasets
+Raw_Matrices/**
+!Raw_Matrices/README.md
+
+# Python virtual environments
+.venv/
+
