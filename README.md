@@ -11,3 +11,10 @@ This repository hosts an experimental framework for studying how matrix reorderi
 - `logs/` – Slurm job output.
 
 See `TODO.md` for the current development status and upcoming tasks.
+
+## Customizing Data Locations
+
+By default the matrices and experiment results reside under `Raw_Matrices/` and
+`Results/` inside the repository.  Large deployments can place these folders
+elsewhere by exporting `MATRIX_DIR` and `RESULTS_DIR` before sourcing
+`Programs/exp_config.sh`.
