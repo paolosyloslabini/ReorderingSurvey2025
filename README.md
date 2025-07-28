@@ -26,9 +26,9 @@ instructions for each tool are found in `Programs/Reordering/Techniques/README.m
 
 ## Python Environment
 
-Helper scripts such as `csv_helper.py` rely on SciPy's sparse matrix
-functions. Create a virtual environment and install the Python
-dependencies before running the pipeline:
+Helper scripts such as `csv_helper.py` use SuiteSparse:GraphBLAS for
+sparse matrix operations. Create a virtual environment and install the
+Python dependencies before running the pipeline:
 
 ```bash
 python -m venv .venv
@@ -37,4 +37,4 @@ pip install -r requirements.txt
 ```
 
 The `requirements.txt` file lists `numpy`, `pandas`, `scipy`,
-`suitesparsegraphblas`, and `py-metis`.
+`python-graphblas`, and `py-metis`.

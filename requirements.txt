@@ -1,5 +1,5 @@
 numpy
 pandas
 scipy
-suitesparsegraphblas
+python-graphblas
 py-metis
