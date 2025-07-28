@@ -1,3 +1,6 @@
 # Raw_Matrices
 
 This directory will contain the unmodified matrices fetched from the SuiteSparse Matrix Collection. The contents are static after the initial download and should not be versioned with Git if large. Use the provided scripts to sync the dataset.
+
+You can store the matrices outside the repository by defining the
+`MATRIX_DIR` environment variable before sourcing `Programs/exp_config.sh`.
