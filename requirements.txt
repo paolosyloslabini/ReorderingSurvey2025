@@ -1,3 +1,4 @@
+# Python dependencies; satisfy via modules or local installs
 numpy
 pandas
 scipy

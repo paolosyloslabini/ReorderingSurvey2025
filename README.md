@@ -21,20 +21,31 @@ elsewhere by exporting `MATRIX_DIR` and `RESULTS_DIR` before sourcing
 
 ## Installing Reordering Techniques
 
-Run `scripts/bootstrap.sh` to fetch and build external reorderers. Detailed
-instructions for each tool are found in `Programs/Reordering/Techniques/README.md`.
+Run `scripts/bootstrap.sh` to fetch external reorderers. Build them after
+loading the necessary modules on your cluster. Rabbit Order (`ro`) requires
+`g++` (≥ 4.9.2), `Boost` (≥ 1.58.0), `libnuma` (≥ 2.0.9), and
+`libtcmalloc_minimal` from `gperftools` (≥ 2.1); see
+`Programs/Reordering/Techniques/README.md` for detailed commands.
 
 ## Python Environment
 
-Helper scripts such as `csv_helper.py` use SuiteSparse:GraphBLAS for
-sparse matrix operations. Create a virtual environment and install the
-Python dependencies before running the pipeline:
+Helper scripts such as `csv_helper.py` rely on `numpy`, `pandas`, `scipy`,
+`python-graphblas`, and `py-metis`. Clusters often forbid `pip` or `sudo`, so
+make these packages available via the module system or by building them in a
+local prefix.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# Example using modules
+module load python/3.11
+module load numpy pandas scipy
+module load python-graphblas py-metis   # names may vary
+
+# Example manual local install (no pip)
+export PYTHONUSERBASE=$PROJECT_ROOT/.local
+tar -xf numpy.tar.gz && (cd numpy && python setup.py install --user)
+# repeat for pandas, scipy, python-graphblas, py-metis
+export PYTHONPATH=$PYTHONUSERBASE/lib/python3.11/site-packages:$PYTHONPATH
 ```
 
-The `requirements.txt` file lists `numpy`, `pandas`, `scipy`,
-`python-graphblas`, and `py-metis`.
+The `requirements.txt` file enumerates the Python packages that need to be
+present; satisfy them using modules or local builds.
