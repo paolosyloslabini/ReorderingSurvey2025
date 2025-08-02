@@ -41,14 +41,14 @@ if [[ ! -x "$WRAPPER" ]]; then
 fi
 
 # Determine reordering type (1D vs 2D)
-REORDER_TYPE=$(python - <<'PY'
+REORDER_TYPE=$(python - "$TECH" "$PROJECT_ROOT/config/reorder.yml" <<'PY'
 import sys, yaml
 tech, cfg_path = sys.argv[1], sys.argv[2]
 with open(cfg_path) as f:
     cfg = yaml.safe_load(f)
 print(cfg.get(tech, {}).get('type', '1D'))
 PY
-"$TECH" "$PROJECT_ROOT/config/reorder.yml")
+)
 
 start=$(date +%s%N)
 set +e
@@ -60,7 +60,7 @@ TIME_MS=$(( (end - start) / 1000000 ))
 TIMESTAMP=$(date --iso-8601=seconds)
 
 # Extract basic matrix info
-read N_ROWS N_COLS NNZ < <(python - <<'PY'
+read N_ROWS N_COLS NNZ < <(python - "$MATRIX" <<'PY'
 import sys
 with open(sys.argv[1]) as f:
     header=f.readline()
@@ -70,7 +70,7 @@ with open(sys.argv[1]) as f:
         print(*line.split())
         break
 PY
-"$MATRIX")
+)
 
 # Write initial CSV row
 cat > "$CSV" <<CSV
@@ -80,7 +80,9 @@ CSV
 
 # Generate reordered matrix for downstream use and metrics
 REORDERED="$OUTDIR/reordered.mtx"
+set +e
 python "$PROJECT_ROOT/scripts/reorder_matrix.py" "$MATRIX" "$PERM" "$REORDER_TYPE" "$REORDERED"
+set -e
 
 # Post-process structural metrics
 python "$PROJECT_ROOT/scripts/csv_helper.py" "$REORDERED" "$CSV" || true
