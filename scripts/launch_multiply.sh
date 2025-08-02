@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
 # Submit a multiplication job via sbatch
-# Usage: launch_multiply.sh <matrix_dir> <mult_impl> [key=value ...]
+# Usage: launch_multiply.sh <reorder_csv> <mult_impl> [key=value ...]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PROGRAM="$ROOT/Programs/Multiply.sbatch"
 
 if [[ $# -lt 2 ]]; then
-    echo "Usage: $0 <matrix_dir> <mult_impl> [key=value ...]" >&2
+    echo "Usage: $0 <reorder_csv> <mult_impl> [key=value ...]" >&2
     exit 1
 fi
 
-MAT_DIR="$1"
+CSV_SRC="$1"
 IMPL="$2"
 shift 2
 PARAMS=("$@")
 
+if [[ ! -f "$CSV_SRC" ]]; then
+    echo "CSV $CSV_SRC not found" >&2
+    exit 1
+fi
+
+MAT_DIR="$(dirname "$CSV_SRC")"
 PERM="$MAT_DIR/permutation.g"
 if [[ ! -f "$PERM" ]]; then
     echo "Permutation file $PERM not found" >&2
@@ -48,4 +54,4 @@ SBATCH_OPTS=("--job-name=$EXP_NAME" "--output=$OUT_DIR/${EXP_NAME}_%j.out" "--er
 [[ -n "${NTASKS:-}" ]] && SBATCH_OPTS+=("--ntasks=$NTASKS")
 [[ -n "${CPUS_PER_TASK:-}" ]] && SBATCH_OPTS+=("--cpus-per-task=$CPUS_PER_TASK")
 
-sbatch "${SBATCH_OPTS[@]}" "$PROGRAM" "$MAT_DIR" "$PERM" "$IMPL" "${PARAMS[@]}"
+sbatch "${SBATCH_OPTS[@]}" "$PROGRAM" "$CSV_SRC" "$IMPL" "${PARAMS[@]}"

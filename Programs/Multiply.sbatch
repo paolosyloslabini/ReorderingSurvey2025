@@ -1,23 +1,28 @@
 #!/bin/bash
 
 # Driver for a single multiplication experiment.
-# Usage: sbatch Programs/Multiply.sbatch <matrix_dir> <perm_path> <mult_impl> [key=value ...]
+# Usage: sbatch Programs/Multiply.sbatch <reorder_csv> <mult_impl> [key=value ...]
 
 set -euo pipefail
 
 source "$(dirname "$0")/exp_config.sh"
 
-if [[ $# -lt 3 ]]; then
-    echo "Usage: $0 <matrix_dir> <perm_path> <mult_impl> [key=value ...]" >&2
+if [[ $# -lt 2 ]]; then
+    echo "Usage: $0 <reorder_csv> <mult_impl> [key=value ...]" >&2
     exit 1
 fi
 
-MAT_DIR="$1"
-PERM="$2"
-IMPL="$3"
-shift 3
+CSV_SRC="$1"
+IMPL="$2"
+shift 2
 PARAMS=("$@")
+if [[ ! -f "$CSV_SRC" ]]; then
+    echo "CSV $CSV_SRC not found" >&2
+    exit 1
+fi
 
+MAT_DIR="$(dirname "$CSV_SRC")"
+PERM="$MAT_DIR/permutation.g"
 if [[ ! -f "$PERM" ]]; then
     echo "Permutation file $PERM not found" >&2
     exit 1
@@ -25,8 +30,6 @@ fi
 
 MATRIX_NAME=$(basename "$(dirname "$MAT_DIR")")
 TECH_PARAM=$(basename "$MAT_DIR")
-
-CSV_SRC="$MAT_DIR/results.csv"
 DATASET=$(python - <<'PY' "$CSV_SRC"
 import sys,pandas as pd
 df=pd.read_csv(sys.argv[1])
@@ -41,13 +44,13 @@ PY
 )
 
 MTX_PATH="$PROJECT_ROOT/Raw_Matrices/$DATASET/$MATRIX_NAME.mtx"
-REORDERED="$MAT_DIR/reordered.mtx"
-trap 'rm -f "$REORDERED"' EXIT
-python "$PROJECT_ROOT/scripts/reorder_matrix.py" "$MTX_PATH" "$PERM" "$REORDER_TYPE" "$REORDERED"
 
 OUTDIR="$RESULTS_DIR/Multiplication/$MATRIX_NAME/$TECH_PARAM/$IMPL"
 mkdir -p "$OUTDIR"
 CSV="$OUTDIR/results.csv"
+REORDERED="$OUTDIR/reordered.mtx"
+trap 'rm -f "$REORDERED"' EXIT
+python "$PROJECT_ROOT/scripts/reorder_matrix.py" "$MTX_PATH" "$PERM" "$REORDER_TYPE" "$REORDERED"
 
 WRAPPER="$PROJECT_ROOT/Programs/Multiplication/Techniques/operation_${IMPL}.sh"
 if [[ ! -x "$WRAPPER" ]]; then
@@ -65,7 +68,7 @@ cp "$CSV_SRC" "$CSV"
 
 start=$(date +%s%N)
 set +e
-"$WRAPPER" "$MAT_DIR" "${PARAMS[@]}"
+"$WRAPPER" "$OUTDIR" "${PARAMS[@]}"
 STATUS=$?
 set -e
 end=$(date +%s%N)
