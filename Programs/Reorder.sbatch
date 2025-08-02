@@ -1,19 +1,5 @@
 #!/bin/bash
 
-#SBATCH --job-name=<exp-name>
-#SBATCH --output=<sout_path>/<hostname>/<exp-name>/<exp-name>_%j.out
-#SBATCH --error=<sout_path>/<hostname>/<exp-name>/<exp-name>_%j.err
-
-#SBATCH --partition=<partition>
-#SBATCH --account=<account>
-#SBATCH --time=<time>
-#SBATCH --qos=<qos>  # optional
-
-#SBATCH --nodes=<nnodes>
-#SBATCH --gres=gpu:<ngpus>
-#SBATCH --tasks=<ntasks>
-#SBATCH --cpus-per-task=<cpus-per-task>
-
 # General driver for a single reordering experiment.
 # Usage: sbatch Programs/Reorder.sbatch <matrix_path> <reorder_tech> [key=value ...]
 

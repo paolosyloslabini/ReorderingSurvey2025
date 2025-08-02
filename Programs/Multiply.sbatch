@@ -1,20 +1,5 @@
 #!/bin/bash
 
-#SBATCH --job-name=<exp-name>
-#SBATCH --output=<sout_path>/<hostname>/<exp-name>/<exp-name>_%j.out
-#SBATCH --error=<sout_path>/<hostname>/<exp-name>/<exp-name>_%j.err
-
-#SBATCH --partition=<partition>
-#SBATCH --account=<account>
-#SBATCH --time=<time>
-
-#SBATCH --nodes=<nnodes>
-#SBATCH --gres=gpu:<ngpus>
-#SBATCH --tasks=<ntasks>
-#SBATCH --cpus-per-task=<cpus-per-task>
-
-
-
 # Driver for a single multiplication experiment.
 # Usage: sbatch Programs/Multiply.sbatch <matrix_dir> <perm_path> <mult_impl> [key=value ...]
 
