@@ -1,9 +1,19 @@
 #!/bin/bash
-#SBATCH -A hpc
-#SBATCH -t 02:00:00
-#SBATCH -N 1
-#SBATCH --cpus-per-task=32
-#SBATCH --gpus-per-task=1   # enable for GPU kernels
+
+#SBATCH --job-name=<exp-name>
+#SBATCH --output=<sout_path>/<hostname>/<exp-name>/<exp-name>_%j.out
+#SBATCH --error=<sout_path>/<hostname>/<exp-name>/<exp-name>_%j.err
+
+#SBATCH --partition=<partition>
+#SBATCH --account=<account>
+#SBATCH --time=<time>
+
+#SBATCH --nodes=<nnodes>
+#SBATCH --gres=gpu:<ngpus>
+#SBATCH --tasks=<ntasks>
+#SBATCH --cpus-per-task=<cpus-per-task>
+
+
 
 # Driver for multiplication experiments. Each task reads a line from
 # $TASK_FILE containing: <matrix_dir> <perm_path> <mult_impl> <param_json>

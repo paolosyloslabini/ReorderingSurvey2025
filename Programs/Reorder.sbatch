@@ -1,9 +1,19 @@
 #!/bin/bash
-#SBATCH -A hpc
-#SBATCH -t 02:00:00
-#SBATCH -N 1
-#SBATCH --cpus-per-task=32
-# SBATCH --gpus-per-task=1   # enable for GPU-aware reorderers
+
+#SBATCH --job-name=<exp-name>
+#SBATCH --output=<sout_path>/<hostname>/<exp-name>/<exp-name>_%j.out
+#SBATCH --error=<sout_path>/<hostname>/<exp-name>/<exp-name>_%j.err
+
+#SBATCH --partition=<partition>
+#SBATCH --account=<account>
+#SBATCH --time=<time>
+<qos>
+
+#SBATCH --nodes=<nnodes>
+#SBATCH --gres=gpu:<ngpus>
+#SBATCH --tasks=<ntasks>
+#SBATCH --cpus-per-task=<cpus-per-task>
+
 # General driver for reordering experiments. Each task reads a line from
 # $TASK_FILE containing: <matrix_path> <reorder_tech> <param_json>
 
