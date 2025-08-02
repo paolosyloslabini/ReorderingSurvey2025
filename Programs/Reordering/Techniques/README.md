@@ -5,8 +5,20 @@ reordering algorithm listed in `TOOLS.md`.
 
 ## Rabbit Order (`ro`)
 
-The Rabbit Order sources are retrieved during the bootstrap stage. Ensure `gcc`,
-`boost`, `libnuma`, and `google-perftools` are installed on your system.
+Rabbit Order depends on the following libraries (minimum versions taken from
+the upstream project):
+
+- g++ ≥ 4.9.2
+- Boost ≥ 1.58.0
+- libnuma ≥ 2.0.9
+- libtcmalloc_minimal from gperftools ≥ 2.1
+
+On clusters, load these via modules or install them in a local prefix you
+control. For example:
+
+```bash
+module load gcc/9.3.0 boost/1.74 numactl/2.0.12 gperftools/2.7
+```
 
 ### Build steps
 
