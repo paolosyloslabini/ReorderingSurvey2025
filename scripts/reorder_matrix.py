@@ -11,21 +11,16 @@ Depending on ``rtype``:
 - ``2D``: Permute **both rows and columns** with the same permutation.
 
 The reordered matrix is written back to Matrix‑Market **with 1‑based
-coordinates**, preserving compatibility with MATLAB, SciPy, etc.
+coordinates**
 
 Requirements
 ------------
-Install one of the official bindings and NumPy, e.g.::
-
     pip install graphblas‑suitesparse numpy   # preferred
-    # or, for older environments
-    pip install pygraphblas numpy
 """
 
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 from typing import Tuple
 import numpy as np
