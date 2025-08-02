@@ -78,7 +78,11 @@ matrix_name,dataset,n_rows,n_cols,nnz,reorder_type,reorder_tech,reord_param_set,
 $MATRIX_NAME,$DATASET,$N_ROWS,$N_COLS,$NNZ,$REORDER_TYPE,$TECH,"$PARAM_SET",$TIME_MS,,,$STATUS,$TIMESTAMP
 CSV
 
+# Generate reordered matrix for downstream use and metrics
+REORDERED="$OUTDIR/reordered.mtx"
+python "$PROJECT_ROOT/scripts/reorder_matrix.py" "$MATRIX" "$PERM" "$REORDER_TYPE" "$REORDERED"
+
 # Post-process structural metrics
-python "$PROJECT_ROOT/scripts/csv_helper.py" "$MATRIX" "$PERM" "$CSV" || true
+python "$PROJECT_ROOT/scripts/csv_helper.py" "$REORDERED" "$CSV" || true
 
 exit $STATUS

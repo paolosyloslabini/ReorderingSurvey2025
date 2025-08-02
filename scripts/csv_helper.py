@@ -1,9 +1,9 @@
 """Merge structural metrics into reordering results.
 
-This utility reads the original matrix, the permutation produced by a
-reordering technique, and the CSV row emitted by the wrapper script.
-Using SuiteSparse:GraphBLAS it calculates the half-bandwidth and
-block-level densities (4x4, 8x8, 16x16).  The metrics are written back
+This utility consumes a matrix that has already been permuted by a
+reordering technique along with the CSV row emitted by the wrapper
+script. Using SuiteSparse:GraphBLAS it calculates the half-bandwidth and
+block-level densities (4x4, 8x8, 16x16). The metrics are written back
 into the same CSV file.
 """
 
@@ -69,17 +69,9 @@ def block_metrics(a: gb.Matrix, block: int) -> float:
     return unique / total if total else 0.0
 
 
-def main(matrix: Path, perm: Path, csv: Path) -> None:
+def main(matrix: Path, csv: Path) -> None:
     A = read_mm(matrix)
-    p = np.loadtxt(perm, dtype=np.int64) - 1
-
     df = pd.read_csv(csv)
-    rtype = str(df.loc[0, "reorder_type"]).strip().upper() if "reorder_type" in df.columns else "1D"
-
-    if rtype == "2D":
-        A = A[p, :][:, p].new()
-    else:
-        A = A[p, :].new()
 
     bw = compute_bandwidth(A)
     densities = {b: block_metrics(A, b) for b in (4, 8, 16)}
@@ -95,8 +87,7 @@ def main(matrix: Path, perm: Path, csv: Path) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Add structural metrics to CSV")
-    parser.add_argument("matrix", type=Path, help="Path to .mtx matrix file")
-    parser.add_argument("permutation", type=Path, help="Path to permutation .g")
+    parser.add_argument("matrix", type=Path, help="Path to reordered .mtx matrix file")
     parser.add_argument("csv", type=Path, help="CSV file to update")
     args = parser.parse_args()
-    main(args.matrix, args.permutation, args.csv)
+    main(args.matrix, args.csv)
