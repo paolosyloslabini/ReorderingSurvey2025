@@ -72,12 +72,18 @@ def block_metrics(a: gb.Matrix, block: int) -> float:
 def main(matrix: Path, perm: Path, csv: Path) -> None:
     A = read_mm(matrix)
     p = np.loadtxt(perm, dtype=np.int64) - 1
-    A = A[p, :][:, p].new()
+
+    df = pd.read_csv(csv)
+    rtype = str(df.loc[0, "reorder_type"]).strip().upper() if "reorder_type" in df.columns else "1D"
+
+    if rtype == "2D":
+        A = A[p, :][:, p].new()
+    else:
+        A = A[p, :].new()
 
     bw = compute_bandwidth(A)
     densities = {b: block_metrics(A, b) for b in (4, 8, 16)}
 
-    df = pd.read_csv(csv)
     if "bandwidth" not in df.columns:
         df["bandwidth"] = np.nan
     if "block_density" not in df.columns:
