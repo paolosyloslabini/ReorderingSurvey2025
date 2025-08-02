@@ -3,5 +3,5 @@ numpy
 pandas
 scipy
 python-graphblas
-py-metis
+PyMetis
 pyyaml
