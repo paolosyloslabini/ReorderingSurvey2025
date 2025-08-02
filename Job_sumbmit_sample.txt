@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# ------- Slurm directives -------
+#SBATCH --job-name=<exp-name>
+#SBATCH --output=<log-dir>/<exp-name>_%j.out
+#SBATCH --error=<log-dir>/<exp-name>_%j.err
+
+#SBATCH --partition=<partition-name>
+#SBATCH --account=<slurm-account>
+#SBATCH --time=<HH:MM:SS>
+
+#SBATCH --nodes=<nnodes>
+#SBATCH --ntasks=<ntasks>               # total tasks (MPI ranks)
+#SBATCH --gres=gpu:<ngpus>              # GPUs per job
+#SBATCH --cpus-per-task=<cpus>          # optional
+#SBATCH --mem=<memory>                  # optional, e.g. 0 for all on node
+#SBATCH --constraint=<constraint>       # optional, e.g. avx512
+#SBATCH --qos=<qos>                     # optional, if you use QoS
+
+# ------- (optional) custom environment tweaks -------
+# module load <mpi/your-version>        # load modules, conda env, etc.
+
+# ------- run your executable -------
+srun <binary> <arguments>

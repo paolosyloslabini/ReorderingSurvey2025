@@ -23,9 +23,23 @@ Each stage is launched through an **sbatch driver** and may itself spawn job arr
 
 | Task          | Details                                                          |
 | ------------- | ---------------------------------------------------------------- |
-| Load modules  | GCC/14, CUDA/12, Python/3.11, METIS, MKL, cuSPARSE               |
+| Install dependencies  | GCC/14, CUDA/12, Python/3.11, METIS, MKL, cuSPARSE               |
 | Clone & build | `Programs/Reordering/<tech>/`, `Programs/Multiplication/<impl>/` |
-| Cache dataset | `Raw_Matrices/` downloaded via SuiteSparseDB script              |
+| Cache dataset | `Raw_Matrices/` downloaded via SuiteSparseDB script if not done already          |
+
+
+### 2.2 Submission
+
+Reorderings and Multiplications need to be run in the cluster
+
+See Job_submit_sample for the general look of a slurm submission
+
+Each slurm job should first install all needed modules
+* If it's a Reorder.sbatch: 
+  it will reorder a matrix and then collect the post-processing data in the result.csv
+* If it's a Multiplication.sbatch:
+  it may first apply a permutation, then it will run a multiplication on the reordered matrix, then it will add the multiplication metrics (time) in the (copy of) result.csv
+
 
 ### 2.2 Reordering Phase
 
@@ -48,9 +62,9 @@ Results/Reordering/<MATRIX>/<TECH>_<PARAMSET>/
 
 * **Driver:** `Programs/Multiply.sbatch` (job array over reordered matrices × kernels × params).
 * **Per‑task input**
-  `matrix_dir mult_impl param_set_id`
+  `matrix_dir matrix_permutation mult_impl param_set_id`
 * **Wrapper contract**
-  `operation_<impl>.sh  <matrix_dir>  <param_json>`
+  `operation_<impl>.sh <matrix_dir>  <param_json>`
 * **Outputs**
 
 ```
@@ -99,14 +113,6 @@ project_root/
 ## 5 Slurm Integration
 
 * **Heterogeneous nodes:** GPU kernels request `--gpus-per-task=1`; CPU paths omit GPU flag.
-* **Job arrays:**
-
-  ```bash
-  # reorder  ➜ M×T×P tasks (≤100k)
-  sbatch --array=0-$((N-1)) Reorder.sbatch
-  # multiply ➜ #perm × K×P tasks
-  sbatch --array=0-$((M-1)) Multiply.sbatch
-  ```
 * **Dependencies:** multiplication array holds `--dependency=afterok:<reorder-jobid>` to guarantee permutations exist.
 * **Resources template:**
 
