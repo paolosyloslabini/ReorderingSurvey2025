@@ -49,3 +49,35 @@ export PYTHONPATH=$PYTHONUSERBASE/lib/python3.11/site-packages:$PYTHONPATH
 
 The `requirements.txt` file enumerates the Python packages that need to be
 present; satisfy them using modules or local builds.
+
+## Example Slurm Run
+
+Both `Programs/Reorder.sbatch` and `Programs/Multiply.sbatch` consume a task
+file described by the `TASK_FILE` environment variable. Each line encodes the
+work for one array slot.
+
+```bash
+# 1. Reorder a matrix using Rabbit Order
+cat <<'EOF' > reorder_tasks.txt
+Raw_Matrices/TEST/matrix.mtx ro config/ro_params.json
+EOF
+export TASK_FILE=reorder_tasks.txt
+sbatch --array=0-$((
+    $(wc -l < "$TASK_FILE")-1
+)) Programs/Reorder.sbatch
+
+# 2. Multiply the reordered matrix with a kernel implementation
+cat <<'EOF' > multiply_tasks.txt
+Results/Reordering/matrix/ro_config \
+    Results/Reordering/matrix/ro_config/permutation.g \
+    <impl> config/mult_params.json
+EOF
+export TASK_FILE=multiply_tasks.txt
+sbatch --dependency=afterok:<reorder_jobid> --array=0-$((
+    $(wc -l < "$TASK_FILE")-1
+)) Programs/Multiply.sbatch
+```
+
+Substitute `<impl>` with the desired multiplication wrapper placed under
+`Programs/Multiplication/Techniques/` and adjust the parameter JSON files to
+match your experiment.

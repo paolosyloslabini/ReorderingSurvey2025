@@ -7,7 +7,7 @@
 #SBATCH --partition=<partition>
 #SBATCH --account=<account>
 #SBATCH --time=<time>
-<qos>
+#SBATCH --qos=<qos>  # optional
 
 #SBATCH --nodes=<nnodes>
 #SBATCH --gres=gpu:<ngpus>
