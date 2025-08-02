@@ -55,8 +55,7 @@ sbatch Programs/Reorder.sbatch Raw_Matrices/TEST/matrix.mtx ro mode=cluster
 # Multiply the reordered matrix with a given kernel
 sbatch --dependency=afterok:<REORDER_JOBID> \
        Programs/Multiply.sbatch \
-       Results/Reordering/TEST/matrix/ro_mode-cluster \
-       Results/Reordering/TEST/matrix/ro_mode-cluster/permutation.g \
+       Results/Reordering/TEST/matrix/ro_mode-cluster/results.csv \
        cusparse alpha=1.0
 ```
 
