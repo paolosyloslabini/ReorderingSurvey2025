@@ -39,32 +39,42 @@ present; satisfy them using modules or local builds.
 
 ## Example Slurm Run
 
-Both `Programs/Reorder.sbatch` and `Programs/Multiply.sbatch` consume a task
-file described by the `TASK_FILE` environment variable. Each line encodes the
-work for one array slot.
+Each driver reads a plain text task list; every line becomes one job in the
+array. Below is a minimal end-to-end example.
 
-```bash
-# 1. Reorder a matrix using Rabbit Order
-cat <<'EOF' > reorder_tasks.txt
-Raw_Matrices/TEST/matrix.mtx ro config/ro_params.json
-EOF
-export TASK_FILE=reorder_tasks.txt
-sbatch --array=0-$((
-    $(wc -l < "$TASK_FILE")-1
-) Programs/Reorder.sbatch
+### Reordering
 
-# 2. Multiply the reordered matrix with a kernel implementation
-cat <<'EOF' > multiply_tasks.txt
-Results/Reordering/matrix/ro_config \
-    Results/Reordering/matrix/ro_config/permutation.g \
-    <impl> config/mult_params.json
-EOF
-export TASK_FILE=multiply_tasks.txt
-sbatch --dependency=afterok:<reorder_jobid> --array=0-$((
-    $(wc -l < "$TASK_FILE")-1
-) Programs/Multiply.sbatch
+`reorder_tasks.txt`
+```
+# matrix_path                     reorder_tech  param_set
+Raw_Matrices/TEST/matrix.mtx      ro            config/ro_params.json
 ```
 
-Substitute `<impl>` with the desired multiplication wrapper placed under
-`Programs/Multiplication/Techniques/` and adjust the parameter JSON files to
-match your experiment.
+`run_reorder.sh`
+```bash
+#!/usr/bin/env bash
+TASK_FILE=reorder_tasks.txt
+sbatch --array=0-$(($(wc -l < "$TASK_FILE")-1)) Programs/Reorder.sbatch
+```
+
+Running `run_reorder.sh` prints the Slurm job ID; keep it for the
+multiplication step.
+
+### Multiplication
+
+`multiply_tasks.txt`
+```
+# matrix_dir                                 permutation_path                                      mult_impl  param_set
+Results/Reordering/TEST/matrix/ro_config     Results/Reordering/TEST/matrix/ro_config/permutation.g  cusparse   config/mult_params.json
+```
+
+`run_multiply.sh`
+```bash
+#!/usr/bin/env bash
+TASK_FILE=multiply_tasks.txt
+# Replace REORDER_JOBID with the ID from the reorder submission
+sbatch --dependency=afterok:REORDER_JOBID --array=0-$(($(wc -l < "$TASK_FILE")-1)) Programs/Multiply.sbatch
+```
+
+The `mult_impl` field selects a wrapper script from
+`Programs/Multiplication/Techniques/`.
