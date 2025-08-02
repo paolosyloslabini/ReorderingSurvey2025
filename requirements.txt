@@ -4,3 +4,4 @@ pandas
 scipy
 python-graphblas
 py-metis
+pyyaml

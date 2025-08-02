@@ -40,6 +40,16 @@ if [[ ! -x "$WRAPPER" ]]; then
     exit 1
 fi
 
+# Determine reordering type (1D vs 2D)
+REORDER_TYPE=$(python - <<'PY'
+import sys, yaml
+tech, cfg_path = sys.argv[1], sys.argv[2]
+with open(cfg_path) as f:
+    cfg = yaml.safe_load(f)
+print(cfg.get(tech, {}).get('type', '1D'))
+PY
+"$TECH" "$PROJECT_ROOT/config/reorder.yml")
+
 # Convert param JSON to semicolon-separated key=value
 PARAM_SET=$(python - <<'PY'
 import json,sys
@@ -75,7 +85,7 @@ PY
 # Write initial CSV row
 cat > "$CSV" <<CSV
 matrix_name,dataset,n_rows,n_cols,nnz,reorder_type,reorder_tech,reord_param_set,reorder_time_ms,bandwidth,block_density,exit_code,timestamp
-$MATRIX_NAME,$DATASET,$N_ROWS,$N_COLS,$NNZ,1D,$TECH,"$PARAM_SET",$TIME_MS,,,$STATUS,$TIMESTAMP
+$MATRIX_NAME,$DATASET,$N_ROWS,$N_COLS,$NNZ,$REORDER_TYPE,$TECH,"$PARAM_SET",$TIME_MS,,,$STATUS,$TIMESTAMP
 CSV
 
 # Post-process structural metrics

@@ -1,7 +1,13 @@
 # Placeholder reordering parameter sets
 rcm:
-  - param: default
+  type: 2D
+  params:
+    - param: default
 ro:
-  - param: default
+  type: 1D
+  params:
+    - param: default
 identity:
-  - param: default
+  type: 1D
+  params:
+    - param: default
