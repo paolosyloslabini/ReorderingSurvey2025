@@ -17,7 +17,8 @@
       └── installs repos    └── produces .g & CSV      └── writes CSV
 ```
 
-Each stage is launched through an **sbatch driver** and may itself spawn job arrays for scalability.
+Each stage is launched through an **sbatch driver**; submit one job per matrix,
+technique, and parameter set when sweeping experiments.
 
 ### 2.1 Bootstrap (once per cluster)
 
@@ -43,11 +44,12 @@ Each slurm job should first install all needed modules
 
 ### 2.2 Reordering Phase
 
-* **Driver:** `Programs/Reorder.sbatch` (job array on matrices × techniques × param‑sets).
+* **Driver:** `Programs/Reorder.sbatch` (one matrix × technique × param‑set per
+  submission).
 * **Per‑task input**
-  `matrix_path reorder_tech param_set_id`
+  `matrix_path reorder_tech [key=value ...]`
 * **Wrapper contract**
-  `reordering_<tech>.sh  <mtx>  <permutation.g>  <param_json>`
+  `reordering_<tech>.sh  <mtx>  <permutation.g>  [key=value ...]`
 * **Outputs**
 
 ```
@@ -60,11 +62,12 @@ Results/Reordering/<MATRIX>/<TECH>_<PARAMSET>/
 
 ### 2.3 Multiplication Phase
 
-* **Driver:** `Programs/Multiply.sbatch` (job array over reordered matrices × kernels × params).
+* **Driver:** `Programs/Multiply.sbatch` (one reordered matrix × kernel × param
+  set per submission).
 * **Per‑task input**
-  `matrix_dir matrix_permutation mult_impl param_set_id`
+  `matrix_dir matrix_permutation mult_impl [key=value ...]`
 * **Wrapper contract**
-  `operation_<impl>.sh <matrix_dir>  <param_json>`
+  `operation_<impl>.sh <matrix_dir>  [key=value ...]`
 * **Outputs**
 
 ```

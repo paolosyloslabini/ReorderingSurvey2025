@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# reordering_ro.sh <matrix> <out_perm> <params_json>
+# reordering_ro.sh <matrix> <out_perm> [key=value ...]
 set -euo pipefail
 
 # Load cluster environment
@@ -12,13 +12,12 @@ if [[ ! -x "$RO_BIN" ]]; then
     exit 1
 fi
 
-mode=$(python - <<'PY'
-import json,sys
-with open(sys.argv[1]) as f:
-    p=json.load(f)
-print(p.get('mode','reorder'))
-PY
-"$3")
+mode="reorder"
+for kv in "${@:3}"; do
+    case $kv in
+        mode=*) mode="${kv#mode=}" ;;
+    esac
+done
 
 flag=""
 if [[ "$mode" == "cluster" ]]; then

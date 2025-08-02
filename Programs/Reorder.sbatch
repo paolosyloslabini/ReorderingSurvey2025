@@ -14,30 +14,34 @@
 #SBATCH --tasks=<ntasks>
 #SBATCH --cpus-per-task=<cpus-per-task>
 
-# General driver for reordering experiments. Each task reads a line from
-# $TASK_FILE containing: <matrix_path> <reorder_tech> <param_json>
+# General driver for a single reordering experiment.
+# Usage: sbatch Programs/Reorder.sbatch <matrix_path> <reorder_tech> [key=value ...]
 
 set -euo pipefail
 
 # Ensure PROJECT_ROOT, MATRIX_DIR, RESULTS_DIR
 source "$(dirname "$0")/exp_config.sh"
 
-if [[ -z "${TASK_FILE:-}" ]]; then
-    echo "TASK_FILE not specified" >&2
+if [[ $# -lt 2 ]]; then
+    echo "Usage: $0 <matrix_path> <reorder_tech> [key=value ...]" >&2
     exit 1
 fi
 
-# Extract arguments for this array task
-IFS=' ' read -r MATRIX TECH PARAM_JSON < <(sed -n "$((SLURM_ARRAY_TASK_ID+1))p" "$TASK_FILE")
-
-if [[ -z "$MATRIX" || -z "$TECH" || -z "$PARAM_JSON" ]]; then
-    echo "Invalid task specification at index $SLURM_ARRAY_TASK_ID" >&2
-    exit 1
-fi
+MATRIX="$1"
+TECH="$2"
+shift 2
+PARAMS=("$@")
 
 MATRIX_NAME=$(basename "$MATRIX" .mtx)
 DATASET=$(basename "$(dirname "$MATRIX")")
-PARAM_ID=$(basename "$PARAM_JSON" .json)
+
+if (( ${#PARAMS[@]} )); then
+    PARAM_SET=$(IFS=';'; echo "${PARAMS[*]}")
+    PARAM_ID=$(echo "$PARAM_SET" | tr ';' '_' | tr '=' '-')
+else
+    PARAM_SET=""
+    PARAM_ID="default"
+fi
 
 OUTDIR="$RESULTS_DIR/Reordering/$MATRIX_NAME/${TECH}_${PARAM_ID}"
 mkdir -p "$OUTDIR"
@@ -60,21 +64,11 @@ print(cfg.get(tech, {}).get('type', '1D'))
 PY
 "$TECH" "$PROJECT_ROOT/config/reorder.yml")
 
-# Convert param JSON to semicolon-separated key=value
-PARAM_SET=$(python - <<'PY'
-import json,sys
-with open(sys.argv[1]) as f:
-    cfg=json.load(f)
-print(';'.join(f"{k}={v}" for k,v in sorted(cfg.items())))
-PY
-"$PARAM_JSON")
-
 start=$(date +%s%N)
 set +e
-"$WRAPPER" "$MATRIX" "$PERM" "$PARAM_JSON"
+"$WRAPPER" "$MATRIX" "$PERM" "${PARAMS[@]}"
 STATUS=$?
 set -e
-default=0
 end=$(date +%s%N)
 TIME_MS=$(( (end - start) / 1000000 ))
 TIMESTAMP=$(date --iso-8601=seconds)
