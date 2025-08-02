@@ -34,19 +34,6 @@ Helper scripts such as `csv_helper.py` rely on `numpy`, `pandas`, `scipy`,
 make these packages available via the module system or by building them in a
 local prefix.
 
-```bash
-# Example using modules
-module load python/3.11
-module load numpy pandas scipy
-module load python-graphblas py-metis   # names may vary
-
-# Example manual local install (no pip)
-export PYTHONUSERBASE=$PROJECT_ROOT/.local
-tar -xf numpy.tar.gz && (cd numpy && python setup.py install --user)
-# repeat for pandas, scipy, python-graphblas, py-metis
-export PYTHONPATH=$PYTHONUSERBASE/lib/python3.11/site-packages:$PYTHONPATH
-```
-
 The `requirements.txt` file enumerates the Python packages that need to be
 present; satisfy them using modules or local builds.
 
@@ -64,7 +51,7 @@ EOF
 export TASK_FILE=reorder_tasks.txt
 sbatch --array=0-$((
     $(wc -l < "$TASK_FILE")-1
-)) Programs/Reorder.sbatch
+) Programs/Reorder.sbatch
 
 # 2. Multiply the reordered matrix with a kernel implementation
 cat <<'EOF' > multiply_tasks.txt
@@ -75,7 +62,7 @@ EOF
 export TASK_FILE=multiply_tasks.txt
 sbatch --dependency=afterok:<reorder_jobid> --array=0-$((
     $(wc -l < "$TASK_FILE")-1
-)) Programs/Multiply.sbatch
+) Programs/Multiply.sbatch
 ```
 
 Substitute `<impl>` with the desired multiplication wrapper placed under
