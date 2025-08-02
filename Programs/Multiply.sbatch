@@ -34,6 +34,11 @@ if [[ -z "$MAT_DIR" || -z "$PERM" || -z "$IMPL" || -z "$PARAM_JSON" ]]; then
     exit 1
 fi
 
+if [[ ! -f "$PERM" ]]; then
+    echo "Permutation file $PERM not found" >&2
+    exit 1
+fi
+
 MATRIX_NAME=$(basename "$(dirname "$MAT_DIR")")
 TECH_PARAM=$(basename "$MAT_DIR")
 PARAM_ID=$(basename "$PARAM_JSON" .json)
