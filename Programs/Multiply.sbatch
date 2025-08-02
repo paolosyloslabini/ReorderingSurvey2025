@@ -15,24 +15,23 @@
 
 
 
-# Driver for multiplication experiments. Each task reads a line from
-# $TASK_FILE containing: <matrix_dir> <perm_path> <mult_impl> <param_json>
+# Driver for a single multiplication experiment.
+# Usage: sbatch Programs/Multiply.sbatch <matrix_dir> <perm_path> <mult_impl> [key=value ...]
 
 set -euo pipefail
 
 source "$(dirname "$0")/exp_config.sh"
 
-if [[ -z "${TASK_FILE:-}" ]]; then
-    echo "TASK_FILE not specified" >&2
+if [[ $# -lt 3 ]]; then
+    echo "Usage: $0 <matrix_dir> <perm_path> <mult_impl> [key=value ...]" >&2
     exit 1
 fi
 
-IFS=' ' read -r MAT_DIR PERM IMPL PARAM_JSON < <(sed -n "$((SLURM_ARRAY_TASK_ID+1))p" "$TASK_FILE")
-
-if [[ -z "$MAT_DIR" || -z "$PERM" || -z "$IMPL" || -z "$PARAM_JSON" ]]; then
-    echo "Invalid task specification at index $SLURM_ARRAY_TASK_ID" >&2
-    exit 1
-fi
+MAT_DIR="$1"
+PERM="$2"
+IMPL="$3"
+shift 3
+PARAMS=("$@")
 
 if [[ ! -f "$PERM" ]]; then
     echo "Permutation file $PERM not found" >&2
@@ -41,7 +40,6 @@ fi
 
 MATRIX_NAME=$(basename "$(dirname "$MAT_DIR")")
 TECH_PARAM=$(basename "$MAT_DIR")
-PARAM_ID=$(basename "$PARAM_JSON" .json)
 
 OUTDIR="$RESULTS_DIR/Multiplication/$MATRIX_NAME/$TECH_PARAM/$IMPL"
 mkdir -p "$OUTDIR"
@@ -53,19 +51,17 @@ if [[ ! -x "$WRAPPER" ]]; then
     exit 1
 fi
 
-PARAM_SET=$(python - <<'PY'
-import json,sys
-with open(sys.argv[1]) as f:
-    cfg=json.load(f)
-print(';'.join(f"{k}={v}" for k,v in sorted(cfg.items())))
-PY
-"$PARAM_JSON")
+if (( ${#PARAMS[@]} )); then
+    PARAM_SET=$(IFS=';'; echo "${PARAMS[*]}")
+else
+    PARAM_SET=""
+fi
 
 cp "$MAT_DIR/results.csv" "$CSV"
 
 start=$(date +%s%N)
 set +e
-"$WRAPPER" "$MAT_DIR" "$PARAM_JSON"
+"$WRAPPER" "$MAT_DIR" "${PARAMS[@]}"
 STATUS=$?
 set -e
 end=$(date +%s%N)

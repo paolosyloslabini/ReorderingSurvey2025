@@ -39,42 +39,26 @@ present; satisfy them using modules or local builds.
 
 ## Example Slurm Run
 
-Each driver reads a plain text task list; every line becomes one job in the
-array. Below is a minimal end-to-end example.
+Each driver now handles a single matrix, technique, and parameter set. Submit
+multiple jobs to sweep over inputs.
 
 ### Reordering
 
-`reorder_tasks.txt`
-```
-# matrix_path                     reorder_tech  param_set
-Raw_Matrices/TEST/matrix.mtx      ro            config/ro_params.json
-```
-
-`run_reorder.sh`
 ```bash
-#!/usr/bin/env bash
-TASK_FILE=reorder_tasks.txt
-sbatch --array=0-$(($(wc -l < "$TASK_FILE")-1)) Programs/Reorder.sbatch
+# Reorder with Rabbit Order in cluster mode
+sbatch Programs/Reorder.sbatch Raw_Matrices/TEST/matrix.mtx ro mode=cluster
 ```
-
-Running `run_reorder.sh` prints the Slurm job ID; keep it for the
-multiplication step.
 
 ### Multiplication
 
-`multiply_tasks.txt`
-```
-# matrix_dir                                 permutation_path                                      mult_impl  param_set
-Results/Reordering/TEST/matrix/ro_config     Results/Reordering/TEST/matrix/ro_config/permutation.g  cusparse   config/mult_params.json
-```
-
-`run_multiply.sh`
 ```bash
-#!/usr/bin/env bash
-TASK_FILE=multiply_tasks.txt
-# Replace REORDER_JOBID with the ID from the reorder submission
-sbatch --dependency=afterok:REORDER_JOBID --array=0-$(($(wc -l < "$TASK_FILE")-1)) Programs/Multiply.sbatch
+# Multiply the reordered matrix with a given kernel
+sbatch --dependency=afterok:<REORDER_JOBID> \
+       Programs/Multiply.sbatch \
+       Results/Reordering/TEST/matrix/ro_mode-cluster \
+       Results/Reordering/TEST/matrix/ro_mode-cluster/permutation.g \
+       cusparse alpha=1.0
 ```
 
-The `mult_impl` field selects a wrapper script from
+The `mult_impl` argument selects a wrapper script from
 `Programs/Multiplication/Techniques/`.
