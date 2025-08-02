@@ -85,4 +85,12 @@ python "$PROJECT_ROOT/scripts/reorder_matrix.py" "$MATRIX" "$PERM" "$REORDER_TYP
 # Post-process structural metrics
 python "$PROJECT_ROOT/scripts/csv_helper.py" "$REORDERED" "$CSV" || true
 
+
+# ------------------------------------------------------------
+# Cleanup
+# ------------------------------------------------------------
+if [[ -f "$REORDERED" ]]; then
+    rm -f "$REORDERED"
+fi
+
 exit $STATUS

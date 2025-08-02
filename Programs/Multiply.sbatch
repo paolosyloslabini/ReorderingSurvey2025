@@ -84,4 +84,12 @@ df['timestamp']=timestamp
 df.to_csv(csv,index=False)
 PY
 
+# ------------------------------------------------------------
+# Cleanup
+# ------------------------------------------------------------
+if [[ -f "$REORDERED" ]]; then
+    rm -f "$REORDERED"
+fi
+
+
 exit $STATUS
