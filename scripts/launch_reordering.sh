@@ -24,7 +24,7 @@ else
 fi
 
 MATRIX_NAME=$(basename "$MATRIX" .mtx)
-EXP_NAME="${MATRIX_NAME}_${TECH}_${PARAM_ID}"
+EXP_NAME="Reordering_${MATRIX_NAME}_${TECH}_${PARAM_ID}"
 LOG_DIR=${LOG_DIR:-"$ROOT/logs"}
 HOST=$(hostname)
 OUT_DIR="$LOG_DIR/$HOST/$EXP_NAME"

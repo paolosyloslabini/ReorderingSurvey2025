@@ -18,6 +18,8 @@ import pandas as pd
 import graphblas as gb
 
 
+block_sizes = (4, 8, 16, 32, 64)
+
 def read_mm(path: Path) -> gb.Matrix:
     """Load a Matrix Market file into a GraphBLAS matrix."""
     with open(path) as f:
@@ -74,7 +76,7 @@ def main(matrix: Path, csv: Path) -> None:
     df = pd.read_csv(csv)
 
     bw = compute_bandwidth(A)
-    densities = {b: block_metrics(A, b) for b in (4, 8, 16)}
+    densities = {b: block_metrics(A, b) for b in block_sizes}
 
     if "bandwidth" not in df.columns:
         df["bandwidth"] = np.nan
