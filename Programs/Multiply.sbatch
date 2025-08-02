@@ -26,6 +26,25 @@ fi
 MATRIX_NAME=$(basename "$(dirname "$MAT_DIR")")
 TECH_PARAM=$(basename "$MAT_DIR")
 
+CSV_SRC="$MAT_DIR/results.csv"
+DATASET=$(python - <<'PY' "$CSV_SRC"
+import sys,pandas as pd
+df=pd.read_csv(sys.argv[1])
+print(df.loc[0,'dataset'])
+PY
+)
+REORDER_TYPE=$(python - <<'PY' "$CSV_SRC"
+import sys,pandas as pd
+df=pd.read_csv(sys.argv[1])
+print(str(df.loc[0,'reorder_type']).strip().upper())
+PY
+)
+
+MTX_PATH="$PROJECT_ROOT/Raw_Matrices/$DATASET/$MATRIX_NAME.mtx"
+REORDERED="$MAT_DIR/reordered.mtx"
+trap 'rm -f "$REORDERED"' EXIT
+python "$PROJECT_ROOT/scripts/reorder_matrix.py" "$MTX_PATH" "$PERM" "$REORDER_TYPE" "$REORDERED"
+
 OUTDIR="$RESULTS_DIR/Multiplication/$MATRIX_NAME/$TECH_PARAM/$IMPL"
 mkdir -p "$OUTDIR"
 CSV="$OUTDIR/results.csv"
@@ -42,7 +61,7 @@ else
     PARAM_SET=""
 fi
 
-cp "$MAT_DIR/results.csv" "$CSV"
+cp "$CSV_SRC" "$CSV"
 
 start=$(date +%s%N)
 set +e
