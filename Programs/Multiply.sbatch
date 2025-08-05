@@ -16,6 +16,9 @@ CSV_SRC="$1"
 IMPL="$2"
 shift 2
 PARAMS=("$@")
+
+# Load modules for the multiplication technique
+source "$(dirname "$0")/load_modules.sh" "multiply" "$IMPL"
 if [[ ! -f "$CSV_SRC" ]]; then
     echo "CSV $CSV_SRC not found" >&2
     exit 1

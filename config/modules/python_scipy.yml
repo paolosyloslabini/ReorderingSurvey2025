@@ -1,0 +1,11 @@
+# Module configuration for Python/SciPy-based techniques
+name: "python_scipy"
+description: "Python environment with SciPy for matrix operations"
+modules:
+  - "python/3.11"
+  - "gcc/9.3.0"
+  - "openmpi/4.1.0"
+environment:
+  PYTHONPATH: "${PROJECT_ROOT}/scripts:${PYTHONPATH:-}"
+post_load:
+  - "python -c 'import scipy, numpy; print(f\"SciPy {scipy.__version__}, NumPy {numpy.__version__}\")'"

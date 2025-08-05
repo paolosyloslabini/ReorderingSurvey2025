@@ -18,6 +18,9 @@ TECH="$2"
 shift 2
 PARAMS=("$@")
 
+# Load modules for the reordering technique
+source "$(dirname "$0")/load_modules.sh" "reorder" "$TECH"
+
 MATRIX_NAME=$(basename "$MATRIX" .mtx)
 DATASET=$(basename "$(dirname "$MATRIX")")
 
