@@ -1,7 +1,16 @@
-# Placeholder multiplication parameter sets
+# Multiplication kernel parameter sets
 cucsrspmm:
   gpus: 1
   time: "00:10:00"
   params:
-    - param: default
+    - alpha: 1.0
+      beta: 0.0
+    - alpha: 2.0
+      beta: 1.0
+
+mock:
+  gpus: 0
+  time: "00:05:00"
+  params:
+    - alpha: 1.0
 

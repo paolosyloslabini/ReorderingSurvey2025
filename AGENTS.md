@@ -169,15 +169,24 @@ All compile‑time artefacts are written to `$PROJECT_ROOT/build/` to keep the r
 
 ```bash
 #!/usr/bin/env bash
-# reordering_rcm.sh  <matrix>  <out_perm>  <params_json>
+# reordering_rcm.sh <matrix> <out_perm> [key=value ...]
 set -euo pipefail
-module load suitesparse
+source "$(dirname "$0")/../../exp_config.sh"
+
+# Extract parameters
+symmetric="true"
+for kv in "${@:3}"; do
+    case $kv in
+        symmetric=*) symmetric="${kv#symmetric=}" ;;
+    esac
+done
+
 python - << 'PY'
-import sys, json, scipy.io, scipy.sparse as sp, numpy as np
-mtx, out_g, params = sys.argv[1:]
+import sys, scipy.io, scipy.sparse as sp, numpy as np
+mtx, out_g, symmetric = sys.argv[1:4]
 A = scipy.io.mmread(mtx).tocsr()
 from scipy.sparse.csgraph import reverse_cuthill_mckee
-perm = reverse_cuthill_mckee(A, symmetric_mode=True)
+perm = reverse_cuthill_mckee(A, symmetric_mode=(symmetric.lower() == "true"))
 np.savetxt(out_g, perm+1, fmt='%d')
 PY
 ```
