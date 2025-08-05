@@ -18,9 +18,17 @@ for kv in "${PARAMS[@]}"; do
     esac
 done
 
+# Start internal timing
+start=$(date +%s%N)
+
 # Mock computation: simulate 100-200ms execution time
 sleep_time=$(awk "BEGIN {srand(); print (rand() * 0.1) + 0.1}")
 sleep "$sleep_time"
+
+# End internal timing and echo result
+end=$(date +%s%N)
+time_ms=$(( (end - start) / 1000000 ))
+echo "TIMING_MS:$time_ms"
 
 # Mock success (exit 0)
 exit 0

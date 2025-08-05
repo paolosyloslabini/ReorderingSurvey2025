@@ -69,11 +69,24 @@ cp "$CSV_SRC" "$CSV"
 
 start=$(date +%s%N)
 set +e
-"$WRAPPER" "$OUTDIR" "${PARAMS[@]}"
+WRAPPER_OUTPUT=$("$WRAPPER" "$OUTDIR" "${PARAMS[@]}" 2>&1)
 STATUS=$?
 set -e
 end=$(date +%s%N)
-TIME_MS=$(( (end - start) / 1000000 ))
+EXTERNAL_TIME_MS=$(( (end - start) / 1000000 ))
+
+# Echo wrapper output to stderr for debugging (excluding timing line)
+echo "$WRAPPER_OUTPUT" | grep -v "^TIMING_MS:" >&2 || true
+
+# Check if wrapper provided internal timing in output
+if echo "$WRAPPER_OUTPUT" | grep -q "^TIMING_MS:"; then
+    TIME_MS=$(echo "$WRAPPER_OUTPUT" | grep "^TIMING_MS:" | head -1 | cut -d: -f2)
+    echo "Using internal timing: ${TIME_MS}ms" >&2
+else
+    TIME_MS="$EXTERNAL_TIME_MS"
+    echo "Using external timing: ${TIME_MS}ms" >&2
+fi
+
 TIMESTAMP=$(date --iso-8601=seconds)
 
 python "$PROJECT_ROOT/scripts/update_csv.py" "$CSV" "$IMPL" "$PARAM_SET" "$TIME_MS" "$STATUS" "$TIMESTAMP"
