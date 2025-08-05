@@ -32,29 +32,16 @@ OUT_DIR="$LOG_DIR/$HOST/$EXP_NAME"
 mkdir -p "$OUT_DIR"
 
 # Base SBATCH options from global config
-mapfile -t CFG_OPTS < <(python - "$SBATCH_CFG" <<'PY'
-import sys, yaml
-with open(sys.argv[1]) as f:
-    cfg = yaml.safe_load(f) or {}
-for k, v in cfg.items():
-    if v in (None, ""):
-        continue
-    print(f"--{k.replace('_','-')}={v}")
-PY
+mapfile -t CFG_OPTS < <(
+    yq -r 'to_entries | map(select(.value != null and .value != "")) | .[] |
+    "--" + (.key|gsub("_";"-")) + "=" + (.value|tostring)' "$SBATCH_CFG"
 )
 
 SBATCH_OPTS=("--job-name=$EXP_NAME" "--output=$OUT_DIR/${EXP_NAME}_%j.out" "--error=$OUT_DIR/${EXP_NAME}_%j.err" "${CFG_OPTS[@]}")
 
 # Time and GPU usage from reordering config
-read GPUS TIME < <(python - "$TECH" "$ROOT/config/reorder.yml" <<'PY'
-import sys, yaml
-tech, path = sys.argv[1], sys.argv[2]
-with open(path) as f:
-    cfg = yaml.safe_load(f) or {}
-info = cfg.get(tech, {})
-print(info.get('gpus', 0) or 0, info.get('time', ''))
-PY
-)
+GPUS=$(yq --arg tech "$TECH" -r '.[$tech].gpus // 0' "$ROOT/config/reorder.yml")
+TIME=$(yq --arg tech "$TECH" -r '.[$tech].time // ""' "$ROOT/config/reorder.yml")
 [[ "$GPUS" != 0 ]] && SBATCH_OPTS+=("--gres=gpu:$GPUS")
 [[ -n "$TIME" ]] && SBATCH_OPTS+=("--time=$TIME")
 
