@@ -5,8 +5,16 @@ cucsrspmm:
   params:
     - alpha: 1.0
       beta: 0.0
+      num_cols_B: 64
     - alpha: 2.0
       beta: 1.0
+      num_cols_B: 64
+    - alpha: 1.0
+      beta: 0.0
+      num_cols_B: 128
+    - alpha: 1.0
+      beta: 0.0
+      num_cols_B: 32
 
 mock:
   gpus: 0

@@ -41,7 +41,7 @@ csv_get() {
 DATASET=$(csv_get "$CSV_SRC" "dataset")
 REORDER_TYPE=$(csv_get "$CSV_SRC" "reorder_type" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
 
-MTX_PATH="$PROJECT_ROOT/Raw_Matrices/$DATASET/$MATRIX_NAME.mtx"
+MTX_PATH="$MATRIX_DIR/$DATASET/$MATRIX_NAME.mtx"
 
 OUTDIR="$RESULTS_DIR/Multiplication/$MATRIX_NAME/$TECH_PARAM/$IMPL"
 mkdir -p "$OUTDIR"
@@ -74,6 +74,14 @@ TIME_MS=$(( (end - start) / 1000000 ))
 TIMESTAMP=$(date --iso-8601=seconds)
 
 python "$PROJECT_ROOT/scripts/update_csv.py" "$CSV" "$IMPL" "$PARAM_SET" "$TIME_MS" "$STATUS" "$TIMESTAMP"
+
+# For cuSPARSE, also pass the results file for detailed metrics
+if [[ "$IMPL" == "cucsrspmm" ]]; then
+    CUSPARSE_RESULTS="$OUTDIR/cusparse_results.txt"
+    if [[ -f "$CUSPARSE_RESULTS" ]]; then
+        python "$PROJECT_ROOT/scripts/update_csv_multiply.py" "$CSV" "$IMPL" "$PARAM_SET" "$TIME_MS" "$STATUS" "$TIMESTAMP" "$CUSPARSE_RESULTS"
+    fi
+fi
 
 # ------------------------------------------------------------
 # Cleanup

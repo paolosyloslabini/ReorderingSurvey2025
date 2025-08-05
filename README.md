@@ -87,12 +87,40 @@ sbatch Programs/Reorder.sbatch Raw_Matrices/TEST/matrix.mtx ro mode=cluster
 ### Multiplication
 
 ```bash
-# Multiply the reordered matrix with a given kernel
+# Multiply the reordered matrix with cuSPARSE (requires GPU)
 sbatch --dependency=afterok:<REORDER_JOBID> \
        Programs/Multiply.sbatch \
        Results/Reordering/TEST/matrix/ro_mode-cluster/results.csv \
-       cusparse alpha=1.0
+       cucsrspmm alpha=1.0 beta=0.0 num_cols_B=64
+
+# Multiply with mock implementation (for testing)
+sbatch --dependency=afterok:<REORDER_JOBID> \
+       Programs/Multiply.sbatch \
+       Results/Reordering/TEST/matrix/ro_mode-cluster/results.csv \
+       mock alpha=1.0
 ```
 
 The `mult_impl` argument selects a wrapper script from
-`Programs/Multiplication/Techniques/`.
+`Programs/Multiplication/Techniques/`. Available implementations:
+- `cucsrspmm`: NVIDIA cuSPARSE CSR SpMM (requires GPU)
+- `mock`: Mock multiplication for testing
+
+## GPU/cuSPARSE Setup
+
+For clusters with NVIDIA GPUs, the cuSPARSE multiplication kernel provides
+high-performance sparse matrix-matrix multiplication. The implementation
+automatically builds when first used.
+
+**Requirements:**
+- NVIDIA GPU with CUDA Compute Capability 6.0+
+- CUDA toolkit 11.0 or later
+- Appropriate cluster modules (loaded automatically in `exp_config.sh`)
+
+**Testing:**
+```bash
+# Run demo to test cuSPARSE setup
+bash demo_cusparse.sh
+
+# Manual testing
+cd Programs/Multiplication && make test-env
+```
