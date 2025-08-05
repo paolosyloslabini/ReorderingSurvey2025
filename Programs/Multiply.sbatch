@@ -66,16 +66,18 @@ cp "$CSV_SRC" "$CSV"
 
 start=$(date +%s%N)
 set +e
-"$WRAPPER" "$OUTDIR" "${PARAMS[@]}"
+WRAPPER_OUTPUT=$("$WRAPPER" "$OUTDIR" "${PARAMS[@]}" 2>&1)
 STATUS=$?
 set -e
 end=$(date +%s%N)
 EXTERNAL_TIME_MS=$(( (end - start) / 1000000 ))
 
-# Check if wrapper provided internal timing
-TIMING_FILE="$OUTDIR/timing_ms.txt"
-if [[ -f "$TIMING_FILE" ]]; then
-    TIME_MS=$(cat "$TIMING_FILE")
+# Echo wrapper output to stderr for debugging (excluding timing line)
+echo "$WRAPPER_OUTPUT" | grep -v "^TIMING_MS:" >&2 || true
+
+# Check if wrapper provided internal timing in output
+if echo "$WRAPPER_OUTPUT" | grep -q "^TIMING_MS:"; then
+    TIME_MS=$(echo "$WRAPPER_OUTPUT" | grep "^TIMING_MS:" | head -1 | cut -d: -f2)
     echo "Using internal timing: ${TIME_MS}ms" >&2
 else
     TIME_MS="$EXTERNAL_TIME_MS"

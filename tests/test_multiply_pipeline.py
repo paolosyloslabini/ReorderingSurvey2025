@@ -6,7 +6,6 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
-import pandas as pd
 
 
 def test_internal_timing_integration():
@@ -49,12 +48,12 @@ def test_internal_timing_integration():
         
         assert result.returncode == 0, f"Wrapper failed with: {result.stderr}"
         
-        # Check that internal timing file was created
-        timing_file = outdir / "timing_ms.txt"
-        assert timing_file.exists(), "Internal timing file was not created"
+        # Check that internal timing was output via stdout
+        assert "TIMING_MS:" in result.stdout, f"No timing found in stdout: {result.stdout}"
         
-        # Read internal timing
-        internal_time_ms = float(timing_file.read_text().strip())
+        # Extract internal timing from stdout
+        timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
+        internal_time_ms = float(timing_line.split(':')[1])
         
         print(f"External timing: {external_time_ms:.2f}ms")
         print(f"Internal timing: {internal_time_ms}ms")
@@ -70,24 +69,25 @@ def test_internal_timing_integration():
 
 def test_timing_fallback():
     """Test that system falls back to external timing when internal timing is not available."""
-    # For this test, we would need to create a wrapper that doesn't write timing_ms.txt
-    # But since we've modified all existing wrappers to write timing, we'll test the logic indirectly
-    
-    # This tests the concept that the logic in Multiply.sbatch works correctly
     with tempfile.TemporaryDirectory() as tmp_dir:
         outdir = Path(tmp_dir)
         
-        # Test the file existence check logic used in Multiply.sbatch
-        timing_file = outdir / "timing_ms.txt"
+        # Test the stdout parsing logic used in Multiply.sbatch
+        # When no timing is in stdout
+        mock_output = "Some regular output\nNo timing here\n"
+        has_timing = "TIMING_MS:" in mock_output
+        assert not has_timing
         
-        # When file doesn't exist
-        assert not timing_file.exists()
+        # When timing is in stdout
+        mock_output_with_timing = "Some regular output\nTIMING_MS:123\nMore output\n"
+        has_timing = "TIMING_MS:" in mock_output_with_timing
+        assert has_timing
         
-        # When file exists
-        timing_file.write_text("123")
-        assert timing_file.exists()
-        timing_value = timing_file.read_text().strip()
-        assert timing_value == "123"
+        # Extract timing value
+        timing_lines = [line for line in mock_output_with_timing.split('\n') if line.startswith('TIMING_MS:')]
+        if timing_lines:
+            timing_value = timing_lines[0].split(':')[1]
+            assert timing_value == "123"
 
 
 if __name__ == "__main__":

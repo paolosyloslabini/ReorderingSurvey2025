@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def test_mock_multiplication_timing():
-    """Test that the mock multiplication wrapper writes internal timing."""
+    """Test that the mock multiplication wrapper outputs internal timing via stdout."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         outdir = Path(tmp_dir) / "output"
         outdir.mkdir()
@@ -29,18 +29,18 @@ def test_mock_multiplication_timing():
         
         assert result.returncode == 0, f"Wrapper failed with: {result.stderr}"
         
-        # Check that timing file was created
-        timing_file = outdir / "timing_ms.txt"
-        assert timing_file.exists(), "Timing file was not created"
+        # Check that timing was output via stdout
+        assert "TIMING_MS:" in result.stdout, f"No timing found in stdout: {result.stdout}"
         
-        # Check that timing is a valid number
-        timing_ms = float(timing_file.read_text().strip())
+        # Extract timing from stdout
+        timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
+        timing_ms = float(timing_line.split(':')[1])
         assert timing_ms > 0, f"Invalid timing: {timing_ms}"
         assert timing_ms < 300, f"Timing too large (expected ~100-200ms): {timing_ms}"
 
 
 def test_cucsrspmm_multiplication_timing():
-    """Test that the cucsrspmm multiplication wrapper writes internal timing."""
+    """Test that the cucsrspmm multiplication wrapper outputs internal timing via stdout."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         outdir = Path(tmp_dir) / "output"
         outdir.mkdir()
@@ -70,12 +70,12 @@ def test_cucsrspmm_multiplication_timing():
         
         assert result.returncode == 0, f"Wrapper failed with: {result.stderr}"
         
-        # Check that timing file was created
-        timing_file = outdir / "timing_ms.txt"
-        assert timing_file.exists(), "Timing file was not created"
+        # Check that timing was output via stdout
+        assert "TIMING_MS:" in result.stdout, f"No timing found in stdout: {result.stdout}"
         
-        # Check that timing is a valid number
-        timing_ms = float(timing_file.read_text().strip())
+        # Extract timing from stdout
+        timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
+        timing_ms = float(timing_line.split(':')[1])
         assert timing_ms > 0, f"Invalid timing: {timing_ms}"
 
 

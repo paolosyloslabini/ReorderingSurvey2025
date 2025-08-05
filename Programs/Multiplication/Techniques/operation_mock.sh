@@ -25,10 +25,10 @@ start=$(date +%s%N)
 sleep_time=$(awk "BEGIN {srand(); print (rand() * 0.1) + 0.1}")
 sleep "$sleep_time"
 
-# End internal timing and write to file
+# End internal timing and echo result
 end=$(date +%s%N)
 time_ms=$(( (end - start) / 1000000 ))
-echo "$time_ms" > "$OUTDIR/timing_ms.txt"
+echo "TIMING_MS:$time_ms"
 
 # Mock success (exit 0)
 exit 0

@@ -39,9 +39,9 @@ if [[ -f "$REORDERED" ]]; then
     sleep "$sleep_time"
 fi
 
-# End internal timing and write to file
+# End internal timing and echo result
 end=$(date +%s%N)
 time_ms=$(( (end - start) / 1000000 ))
-echo "$time_ms" > "$OUTDIR/timing_ms.txt"
+echo "TIMING_MS:$time_ms"
 
 exit 0
