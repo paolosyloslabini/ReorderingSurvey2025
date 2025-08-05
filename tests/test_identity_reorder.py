@@ -6,11 +6,19 @@ import pandas as pd
 
 
 def test_identity_reorder(tmp_path):
-    # Create a tiny 2x2 diagonal matrix in Matrix Market format
+    # Create a larger 4x4 diagonal matrix in Matrix Market format
     dataset = tmp_path / "dataset"
     dataset.mkdir()
     mtx = dataset / "matrix.mtx"
-    mtx.write_text("""%%MatrixMarket matrix coordinate real general\n2 2 2\n1 1 1\n2 2 1\n""")
+    mtx.write_text(
+        """%%MatrixMarket matrix coordinate real general
+4 4 4
+1 1 1
+2 2 1
+3 3 1
+4 4 1
+"""
+    )
 
     # Run the reordering driver with our identity wrapper
     env = os.environ.copy()
@@ -25,10 +33,21 @@ def test_identity_reorder(tmp_path):
     # Verify that the permutation and results CSV were produced
     out_dir = results_dir / "Reordering" / "matrix" / "identity_default"
     perm = (out_dir / "permutation.g").read_text().split()
-    assert perm == ["1", "2"]
+    assert perm == ["1", "2", "3", "4"]
 
     csv = out_dir / "results.csv"
     assert csv.is_file()
+
+    # Print the raw CSV contents for debugging
+    print(csv.read_text())
+
     df = pd.read_csv(csv)
+    assert df.loc[0, "matrix_name"] == "matrix"
+    assert df.loc[0, "dataset"] == "dataset"
+    assert df.loc[0, "n_rows"] == 4
+    assert df.loc[0, "n_cols"] == 4
+    assert df.loc[0, "nnz"] == 4
+    assert df.loc[0, "reorder_type"] == "1D"
     assert df.loc[0, "reorder_tech"] == "identity"
+    assert pd.isna(df.loc[0, "reord_param_set"])
     assert df.loc[0, "exit_code"] == 0
