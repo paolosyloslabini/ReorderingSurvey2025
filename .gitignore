@@ -1,5 +1,7 @@
 # Build artifacts
 build/
+Programs/Multiplication/cusparse_spmm
+Programs/Multiplication/*.o
 
 # Experiment results and logs
 Results/**
@@ -17,4 +19,8 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+
+# Temporary files from multiplication runs
+**/cusparse_results.txt
+**/reordered.mtx
 
