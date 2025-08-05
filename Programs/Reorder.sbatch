@@ -41,14 +41,7 @@ if [[ ! -x "$WRAPPER" ]]; then
 fi
 
 # Determine reordering type (1D vs 2D)
-REORDER_TYPE=$(python - "$TECH" "$PROJECT_ROOT/config/reorder.yml" <<'PY'
-import sys, yaml
-tech, cfg_path = sys.argv[1], sys.argv[2]
-with open(cfg_path) as f:
-    cfg = yaml.safe_load(f)
-print(cfg.get(tech, {}).get('type', '1D'))
-PY
-)
+REORDER_TYPE=$(yq --arg tech "$TECH" -r '.[$tech].type // "1D"' "$PROJECT_ROOT/config/reorder.yml")
 
 start=$(date +%s%N)
 set +e
@@ -60,17 +53,7 @@ TIME_MS=$(( (end - start) / 1000000 ))
 TIMESTAMP=$(date --iso-8601=seconds)
 
 # Extract basic matrix info
-read N_ROWS N_COLS NNZ < <(python - "$MATRIX" <<'PY'
-import sys
-with open(sys.argv[1]) as f:
-    header=f.readline()
-    for line in f:
-        if line.startswith('%'):
-            continue
-        print(*line.split())
-        break
-PY
-)
+read N_ROWS N_COLS NNZ < <(awk 'NR>1 && !/^%/ {print $1, $2, $3; exit}' "$MATRIX")
 
 # Write initial CSV row
 cat > "$CSV" <<CSV
