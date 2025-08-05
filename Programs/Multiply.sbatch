@@ -33,7 +33,8 @@ TECH_PARAM=$(basename "$MAT_DIR")
 
 csv_get() {
     local file="$1" col="$2"
-    local idx=$(awk -F, -v c="$col" 'NR==1{for(i=1;i<=NF;i++) if($i==c){print i; exit}}' "$file")
+    local idx
+    idx=$(awk -F, -v c="$col" 'NR==1{for(i=1;i<=NF;i++) if($i==c){print i; exit}}' "$file")
     awk -F, -v i="$idx" 'NR==2{print $i}' "$file"
 }
 
