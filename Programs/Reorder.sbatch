@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # General driver for a single reordering experiment.
 # Usage: sbatch Programs/Reorder.sbatch <matrix_path> <reorder_tech> [key=value ...]
@@ -29,12 +29,13 @@ else
     PARAM_ID="default"
 fi
 
-OUTDIR="$RESULTS_DIR/Reordering/$MATRIX_NAME/${TECH}_${PARAM_ID}"
+# Update paths to Unix style and ensure command compatibility
+OUTDIR=$(realpath -m "$RESULTS_DIR/Reordering/$MATRIX_NAME/${TECH}_${PARAM_ID}")
 mkdir -p "$OUTDIR"
 PERM="$OUTDIR/permutation.g"
 CSV="$OUTDIR/results.csv"
 
-WRAPPER="$PROJECT_ROOT/Programs/Reordering/Techniques/reordering_${TECH}.sh"
+WRAPPER=$(realpath "$PROJECT_ROOT/Programs/Reordering/Techniques/reordering_${TECH}.sh")
 if [[ ! -x "$WRAPPER" ]]; then
     echo "Wrapper $WRAPPER not found" >&2
     exit 1
@@ -50,7 +51,7 @@ STATUS=$?
 set -e
 end=$(date +%s%N)
 TIME_MS=$(( (end - start) / 1000000 ))
-TIMESTAMP=$(date --iso-8601=seconds)
+TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S%:z')
 
 # Extract basic matrix info
 read N_ROWS N_COLS NNZ < <(awk 'NR>1 && !/^%/ {print $1, $2, $3; exit}' "$MATRIX")
@@ -64,11 +65,17 @@ CSV
 # Generate reordered matrix for downstream use and metrics
 REORDERED="$OUTDIR/reordered.mtx"
 set +e
-python "$PROJECT_ROOT/scripts/reorder_matrix.py" "$MATRIX" "$PERM" "$REORDER_TYPE" "$REORDERED"
+PYTHONPATH="$PROJECT_ROOT" python3 "$PROJECT_ROOT/scripts/reorder_matrix.py" \
+    "$(realpath "$MATRIX")" \
+    "$(realpath "$PERM")" \
+    "$REORDER_TYPE" \
+    "$(realpath -m "$REORDERED")"
 set -e
 
 # Post-process structural metrics
-python "$PROJECT_ROOT/scripts/csv_helper.py" "$REORDERED" "$CSV" || true
+PYTHONPATH="$PROJECT_ROOT" python3 "$PROJECT_ROOT/scripts/csv_helper.py" \
+    "$(realpath "$REORDERED")" \
+    "$(realpath "$CSV")" || true
 
 
 # ------------------------------------------------------------
