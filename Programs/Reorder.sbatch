@@ -42,7 +42,7 @@ if [[ ! -x "$WRAPPER" ]]; then
 fi
 
 # Determine reordering type (1D vs 2D)
-REORDER_TYPE=$(yq --arg tech "$TECH" -r '.[$tech].type // "1D"' "$PROJECT_ROOT/config/reorder.yml")
+REORDER_TYPE=$(yq eval ".[\"$TECH\"].type // \"1D\"" "$PROJECT_ROOT/config/reorder.yml")
 
 start=$(date +%s%N)
 set +e
@@ -54,7 +54,7 @@ TIME_MS=$(( (end - start) / 1000000 ))
 TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S%:z')
 
 # Extract basic matrix info
-read N_ROWS N_COLS NNZ < <(awk 'NR>1 && !/^%/ {print $1, $2, $3; exit}' "$MATRIX")
+read -r N_ROWS N_COLS NNZ < <(awk 'NR>1 && !/^%/ {print $1, $2, $3; exit}' "$MATRIX")
 
 # Write initial CSV row
 cat > "$CSV" <<CSV

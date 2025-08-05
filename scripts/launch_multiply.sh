@@ -54,8 +54,8 @@ mapfile -t CFG_OPTS < <(
 SBATCH_OPTS=("--job-name=$EXP_NAME" "--output=$OUT_DIR/${EXP_NAME}_%j.out" "--error=$OUT_DIR/${EXP_NAME}_%j.err" "${CFG_OPTS[@]}")
 
 # Time and GPU usage from multiplication config
-GPUS=$(yq --arg impl "$IMPL" -r '.[$impl].gpus // 0' "$ROOT/config/multiply.yml")
-TIME=$(yq --arg impl "$IMPL" -r '.[$impl].time // ""' "$ROOT/config/multiply.yml")
+GPUS=$(yq eval ".[\"$IMPL\"].gpus // 0" "$ROOT/config/multiply.yml")
+TIME=$(yq eval ".[\"$IMPL\"].time // \"\"" "$ROOT/config/multiply.yml")
 [[ "$GPUS" != 0 ]] && SBATCH_OPTS+=("--gres=gpu:$GPUS")
 [[ -n "$TIME" ]] && SBATCH_OPTS+=("--time=$TIME")
 

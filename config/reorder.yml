@@ -1,19 +1,23 @@
-# Placeholder reordering parameter sets
+# Reordering technique parameter sets
 rcm:
-  type: 2D
+  type: "1D"
   gpus: 0
   time: "00:10:00"
   params:
-    - param: default
+    - symmetric: true
+    - symmetric: false
+
 ro:
-  type: 1D
+  type: "1D"
   gpus: 0
   time: "00:05:00"
   params:
-    - param: default
+    - mode: "reorder"
+    - mode: "cluster"
+
 identity:
-  type: 1D
+  type: "1D"
   gpus: 0
   time: "00:01:00"
   params:
-    - param: default
+    - {}

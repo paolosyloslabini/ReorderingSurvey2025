@@ -11,6 +11,10 @@ logs/**
 Raw_Matrices/**
 !Raw_Matrices/README.md
 
-# Python virtual environments
+# Python virtual environments and cache
 .venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
 
