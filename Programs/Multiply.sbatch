@@ -30,18 +30,15 @@ fi
 
 MATRIX_NAME=$(basename "$(dirname "$MAT_DIR")")
 TECH_PARAM=$(basename "$MAT_DIR")
-DATASET=$(python - <<'PY' "$CSV_SRC"
-import sys,pandas as pd
-df=pd.read_csv(sys.argv[1])
-print(df.loc[0,'dataset'])
-PY
-)
-REORDER_TYPE=$(python - <<'PY' "$CSV_SRC"
-import sys,pandas as pd
-df=pd.read_csv(sys.argv[1])
-print(str(df.loc[0,'reorder_type']).strip().upper())
-PY
-)
+
+csv_get() {
+    local file="$1" col="$2"
+    local idx=$(awk -F, -v c="$col" 'NR==1{for(i=1;i<=NF;i++) if($i==c){print i; exit}}' "$file")
+    awk -F, -v i="$idx" 'NR==2{print $i}' "$file"
+}
+
+DATASET=$(csv_get "$CSV_SRC" "dataset")
+REORDER_TYPE=$(csv_get "$CSV_SRC" "reorder_type" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
 
 MTX_PATH="$PROJECT_ROOT/Raw_Matrices/$DATASET/$MATRIX_NAME.mtx"
 
@@ -75,17 +72,7 @@ end=$(date +%s%N)
 TIME_MS=$(( (end - start) / 1000000 ))
 TIMESTAMP=$(date --iso-8601=seconds)
 
-python - <<'PY' "$CSV" "$IMPL" "$PARAM_SET" "$TIME_MS" "$STATUS" "$TIMESTAMP"
-import sys,pandas as pd
-csv,impl,param_set,time_ms,status,timestamp=sys.argv[1:7]
-df=pd.read_csv(csv)
-df['mult_type']=impl
-df['mult_param_set']=param_set
-df['mult_time_ms']=float(time_ms)
-df['exit_code']=int(status)
-df['timestamp']=timestamp
-df.to_csv(csv,index=False)
-PY
+python "$PROJECT_ROOT/scripts/update_csv.py" "$CSV" "$IMPL" "$PARAM_SET" "$TIME_MS" "$STATUS" "$TIMESTAMP"
 
 # ------------------------------------------------------------
 # Cleanup
