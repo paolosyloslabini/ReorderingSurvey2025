@@ -72,6 +72,7 @@ def main(matrix: Path, csv: Path) -> None:
     if "block_density" not in df.columns:
         df["block_density"] = ""
     df.loc[0, "bandwidth"] = bw
+    df["block_density"] = df["block_density"].astype(str)  # Ensure string type
     df.loc[0, "block_density"] = json.dumps(densities)
     df.to_csv(csv, index=False)
 
