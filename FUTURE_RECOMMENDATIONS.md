@@ -2,7 +2,7 @@
 
 Based on the repository review and fixes, here are the recommended next steps for continued development:
 
-## Immediate Priority (Next 1-2 weeks)
+## Immediate Priority
 
 1. **Complete Core Reordering Techniques**
    - Implement `reordering_amd.sh` using SciPy's `minimum_degree_ordering`
@@ -11,7 +11,6 @@ Based on the repository review and fixes, here are the recommended next steps fo
 
 2. **Implement Real Multiplication Kernels**
    - Complete `operation_cucsrspmm.sh` with actual cuSPARSE calls
-   - Add `operation_mklspmm.sh` for Intel MKL CSR SpMM
    - Add proper GPU environment detection
 
 3. **Bootstrap Script Enhancement**
@@ -19,7 +18,7 @@ Based on the repository review and fixes, here are the recommended next steps fo
    - Add error handling and dependency checking
    - Include METIS, Rabbit Order, and other external tools
 
-## Medium Priority (Next month)
+## Medium Priority
 
 4. **Testing Infrastructure**
    - Add comprehensive test suite for all reordering techniques
@@ -39,7 +38,7 @@ Based on the repository review and fixes, here are the recommended next steps fo
    - Document performance tuning guidelines
    - Add troubleshooting guide
 
-## Long-term Goals (Next 2-3 months)
+## Long-term Goals
 
 7. **Advanced Features**
    - Add support for distributed/MPI reordering techniques
@@ -72,35 +71,6 @@ Based on the repository review and fixes, here are the recommended next steps fo
     - Support for experiment templates
     - Parameter sweep automation
     - Result archiving and versioning
-
-## Research Extensions
-
-12. **Novel Techniques**
-    - Implement machine learning-based reordering
-    - Add GPU-specific reordering methods
-    - Support for tensor operations
-    - Adaptive reordering based on computation patterns
-
-## Current Status Summary
-
-### ✅ Completed
-- Basic framework structure is solid
-- Identity and RCM reordering work end-to-end
-- Mock multiplication kernels for testing
-- Proper error handling in main scripts
-- Comprehensive documentation structure
-- All critical bugs fixed
-
-### ⚠️ Needs Attention
-- Limited reordering technique implementations
-- Placeholder multiplication kernels
-- Missing external dependency builds
-- Limited test coverage
-
-### 🔄 Ongoing
-- Documentation improvements
-- Code quality enhancements
-- Performance optimization opportunities
 
 ## Getting Started with Contributions
 
