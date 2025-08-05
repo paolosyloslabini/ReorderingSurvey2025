@@ -3,6 +3,7 @@ rcm:
   type: "2D"
   gpus: 0
   time: "00:10:00"
+  modules: "python_scipy"
   params:
     - symmetric: true
     - symmetric: false
@@ -11,6 +12,7 @@ ro:
   type: "2D"
   gpus: 0
   time: "00:05:00"
+  modules: "basic"
   params:
     - mode: "reorder"
     - mode: "cluster"
@@ -19,5 +21,6 @@ identity:
   type: "1D"
   gpus: 0
   time: "00:01:00"
+  modules: "basic"
   params:
     - {}

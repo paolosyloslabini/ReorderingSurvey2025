@@ -1,0 +1,7 @@
+# Basic module configuration (minimal dependencies)
+name: "basic"
+description: "Basic environment with no special dependencies"
+modules:
+  - "gcc/9.3.0"
+environment: {}
+post_load: []

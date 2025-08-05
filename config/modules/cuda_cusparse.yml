@@ -1,0 +1,13 @@
+# Module configuration for CUDA/cuSPARSE-based techniques  
+name: "cuda_cusparse"
+description: "CUDA environment with cuSPARSE for GPU-accelerated sparse operations"
+modules:
+  - "cuda/12.2"
+  - "gcc/9.3.0"
+  - "python/3.11"
+environment:
+  CUDA_VISIBLE_DEVICES: "${SLURM_LOCALID:-0}"
+  LD_LIBRARY_PATH: "${CUDA_HOME:-/usr/local/cuda}/lib64:${LD_LIBRARY_PATH:-}"
+post_load:
+  - "nvcc --version | head -1 || echo 'CUDA not available'"
+  - "nvidia-smi -L | head -1 || echo 'GPU not available'"
