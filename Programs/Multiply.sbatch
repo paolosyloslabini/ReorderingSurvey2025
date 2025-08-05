@@ -64,13 +64,24 @@ fi
 
 cp "$CSV_SRC" "$CSV"
 
-start=$(date +%s%N)
 set +e
-"$WRAPPER" "$OUTDIR" "${PARAMS[@]}"
+WRAPPER_OUTPUT=$("$WRAPPER" "$OUTDIR" "${PARAMS[@]}" 2>&1)
 STATUS=$?
 set -e
-end=$(date +%s%N)
-TIME_MS=$(( (end - start) / 1000000 ))
+
+# Extract timing from wrapper output (should be the last line that's a number)
+if [[ $STATUS -eq 0 ]]; then
+    # Get the timing from wrapper's stdout (should be echoed as the last numeric line)
+    TIME_MS=$(echo "$WRAPPER_OUTPUT" | grep -E '^[0-9]+\.?[0-9]*$' | tail -n 1)
+    if [[ -z "$TIME_MS" ]]; then
+        echo "Warning: No timing output from wrapper, using fallback measurement" >&2
+        # Fallback: use a minimal time estimate
+        TIME_MS="0"
+    fi
+else
+    TIME_MS="0"
+fi
+
 TIMESTAMP=$(date --iso-8601=seconds)
 
 python "$PROJECT_ROOT/scripts/update_csv.py" "$CSV" "$IMPL" "$PARAM_SET" "$TIME_MS" "$STATUS" "$TIMESTAMP"

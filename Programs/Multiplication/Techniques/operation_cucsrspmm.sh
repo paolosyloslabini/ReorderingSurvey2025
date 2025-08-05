@@ -54,17 +54,39 @@ if [[ ! -x "$EXECUTABLE" ]]; then
     cd - > /dev/null
 fi
 
-# Run cuSPARSE SpMM
+# Run cuSPARSE SpMM and capture output
 RESULTS_FILE="$OUTDIR/cusparse_results.txt"
-"$EXECUTABLE" "$REORDERED" "$RESULTS_FILE" "$alpha" "$beta" "$num_cols_B" || {
-    echo "Error: cuSPARSE SpMM execution failed" >&2
-    exit 1
-}
+OUTPUT_LOG="$OUTDIR/cusparse_output.log"
+
+# Capture both stdout and stderr, and extract timing information
+"$EXECUTABLE" "$REORDERED" "$RESULTS_FILE" "$alpha" "$beta" "$num_cols_B" > "$OUTPUT_LOG" 2>&1
+EXIT_CODE=$?
+
+if [[ $EXIT_CODE -ne 0 ]]; then
+    echo "Error: cuSPARSE SpMM execution failed with exit code $EXIT_CODE" >&2
+    if [[ -f "$OUTPUT_LOG" ]]; then
+        echo "Last few lines of output:" >&2
+        tail -n 5 "$OUTPUT_LOG" >&2
+    fi
+    exit $EXIT_CODE
+fi
 
 # Check if results file was created
 if [[ ! -f "$RESULTS_FILE" ]]; then
     echo "Error: Results file not created" >&2
     exit 1
+fi
+
+# Extract timing from the program output and echo it
+# The program outputs "Average time: X.XXX ms"
+if [[ -f "$OUTPUT_LOG" ]]; then
+    time_ms=$(grep "Average time:" "$OUTPUT_LOG" | awk '{print $3}')
+    if [[ -n "$time_ms" ]]; then
+        echo "$time_ms"
+    else
+        echo "Error: Could not extract timing information from cuSPARSE output" >&2
+        exit 1
+    fi
 fi
 
 echo "cuSPARSE SpMM completed successfully" >&2
