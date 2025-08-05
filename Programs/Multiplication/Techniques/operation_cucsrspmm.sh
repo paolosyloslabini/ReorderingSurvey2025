@@ -25,6 +25,9 @@ for kv in "${PARAMS[@]}"; do
     esac
 done
 
+# Start internal timing
+start=$(date +%s%N)
+
 # TODO: Implement actual cuSPARSE CSR SpMM call here
 # For now, just simulate execution time based on matrix size
 REORDERED="$OUTDIR/reordered.mtx"
@@ -35,5 +38,10 @@ if [[ -f "$REORDERED" ]]; then
     sleep_time=$(awk -v nnz="$nnz" "BEGIN {print (0.001 + nnz * 0.000001)}")
     sleep "$sleep_time"
 fi
+
+# End internal timing and write to file
+end=$(date +%s%N)
+time_ms=$(( (end - start) / 1000000 ))
+echo "$time_ms" > "$OUTDIR/timing_ms.txt"
 
 exit 0
