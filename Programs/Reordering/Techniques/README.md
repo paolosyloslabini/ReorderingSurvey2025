@@ -10,6 +10,8 @@ reordering_<technique>.sh <matrix.mtx> <output_permutation.g> [key=value ...]
 
 - `identity` - Identity permutation (no reordering) for testing
 - `rcm` - Reverse Cuthill-McKee bandwidth reduction  
+- `rcm_graphblas` - GraphBLAS-optimized RCM for large matrices
+- `amd` - Approximate Minimum Degree fill-in reduction
 - `ro` - Rabbit Order block-oriented reordering (requires external build)
 
 ## Wrapper Contract

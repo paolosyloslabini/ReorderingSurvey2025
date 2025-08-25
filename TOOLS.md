@@ -12,7 +12,7 @@ This file defines **canonical handles**, human-readable names, and short descrip
 | `rcm`      | Reverse Cuthill-McKee                             | Bandwidth                 | ✅ Implemented            |
 | `rcm_graphblas` | Reverse Cuthill-McKee (GraphBLAS-optimized)     | Bandwidth                 | ✅ Implemented            |
 | `ro`       | Rabbit Order                                      | Block-oriented            | ✅ Implemented            |
-| `amd`      | Approximate Minimum Degree                        | Fill-in / bandwidth       | 🟡 Planned (High Priority) |
+| `amd`      | Approximate Minimum Degree                        | Fill-in / bandwidth       | ✅ Implemented            |
 | `nd`       | Nested Dissection                                 | Fill-in / partition-based | 🟡 Planned (High Priority) |
 | `mgp`      | Multilevel Graph Partitioning (METIS)             | Partitioning              | 🟡 Planned (Medium)        |
 | `mhgp`     | Multilevel Hypergraph Partitioning (PaToH/hMETIS) | Partitioning              | 🟡 Planned (Medium)        |
