@@ -78,7 +78,7 @@ loading the necessary modules on your cluster. Rabbit Order (`ro`) requires
 ## Python Environment
 
 Helper scripts such as `csv_helper.py` rely on `numpy`, `pandas`, `scipy`,
-`python-graphblas`, and `py-metis`. Clusters often forbid `pip` or `sudo`, so
+`python-graphblas`, and `PyMetis`. Clusters often forbid `pip` or `sudo`, so
 make these packages available via the module system or by building them in a
 local prefix.
 
@@ -95,16 +95,24 @@ multiple jobs to sweep over inputs.
 ```bash
 # Reorder with Rabbit Order in cluster mode
 sbatch Programs/Reorder.sbatch Raw_Matrices/TEST/matrix.mtx ro mode=cluster
+
+# Reorder with RCM (symmetric mode)  
+sbatch Programs/Reorder.sbatch Raw_Matrices/TEST/matrix.mtx rcm symmetric=true
 ```
 
 ### Multiplication
 
 ```bash
-# Multiply the reordered matrix with a given kernel
+# Multiply the reordered matrix with cuSPARSE
 sbatch --dependency=afterok:<REORDER_JOBID> \
        Programs/Multiply.sbatch \
-       Results/Reordering/TEST/matrix/ro_mode-cluster/results.csv \
-       cusparse alpha=1.0
+       Results/Reordering/matrix/ro_mode-cluster/results.csv \
+       cucsrspmm alpha=1.0
+
+# Multiply with mock kernel for testing
+sbatch Programs/Multiply.sbatch \
+       Results/Reordering/matrix/identity_default/results.csv \
+       mock alpha=1.0
 ```
 
 The `mult_impl` argument selects a wrapper script from

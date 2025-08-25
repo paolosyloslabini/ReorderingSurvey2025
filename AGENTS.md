@@ -137,7 +137,7 @@ project_root/
 ./scripts/bootstrap.sh   # wraps git clone & cmake
 # 2. create Python venv + requirements.txt
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt  # numpy, pandas, scipy, python-graphblas, py-metis
+pip install -r requirements.txt  # numpy, pandas, scipy, python-graphblas, PyMetis
 # 3. verify GPU toolkits
 nvcc --version  # expect ≥12.2
 nvidia-smi      # driver ≥550.XX
