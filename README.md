@@ -77,8 +77,9 @@ loading the necessary modules on your cluster. Rabbit Order (`ro`) requires
 
 ## Python Environment
 
-Helper scripts such as `csv_helper.py` rely on `numpy`, `pandas`, `scipy`,
-`python-graphblas`, and `PyMetis`. Clusters often forbid `pip` or `sudo`, so
+Helper scripts such as `csv_helper.py` (GraphBLAS-based) rely on `numpy`, `pandas`,
+`python-graphblas`, and `PyMetis`. The scipy versions (`*_scipy.py`) rely on `scipy`
+for compatibility. Clusters often forbid `pip` or `sudo`, so
 make these packages available via the module system or by building them in a
 local prefix.
 
