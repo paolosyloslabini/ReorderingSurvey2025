@@ -13,15 +13,5 @@ if [[ ! -x "$RO_BIN" ]]; then
 fi
 
 mode="reorder"
-for kv in "${@:3}"; do
-    case $kv in
-        mode=*) mode="${kv#mode=}" ;;
-    esac
-done
 
-flag=""
-if [[ "$mode" == "cluster" ]]; then
-    flag="-c"
-fi
-
-"$RO_BIN" $flag "$1" | awk '{print $1+1}' > "$2"
+"$RO_BIN" "$1" | awk '{print $1+1}' > "$2"

@@ -6,13 +6,8 @@ set -euo pipefail
 # Load cluster environment
 source "$(dirname "$0")/../../exp_config.sh"
 
-# Extract parameters
+# parameters
 symmetric="true"
-for kv in "${@:3}"; do
-    case $kv in
-        symmetric=*) symmetric="${kv#symmetric=}" ;;
-    esac
-done
 
 python - << PY
 import sys, scipy.io, scipy.sparse as sp, numpy as np
