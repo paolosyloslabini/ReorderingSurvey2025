@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # operation_cucsrspmm.sh <outdir> [key=value ...]
-# NVIDIA cuSPARSE CSR SpMM wrapper (placeholder implementation)
+# NVIDIA cuSPARSE CSR SpMM wrapper with real GPU implementation
 set -euo pipefail
 
 # Load cluster environment
@@ -10,38 +10,56 @@ OUTDIR="$1"
 shift
 PARAMS=("$@")
 
-# Check if this is a real GPU environment (placeholder check)
-if ! command -v nvidia-smi &> /dev/null; then
-    echo "Warning: nvidia-smi not found, running in mock mode" >&2
-fi
-
 # Extract parameters
 alpha="1.0"
 beta="0.0"
+force_cpu="false"
 for kv in "${PARAMS[@]}"; do
     case $kv in
         alpha=*) alpha="${kv#alpha=}" ;;
         beta=*) beta="${kv#beta=}" ;;
+        force_cpu=*) force_cpu="${kv#force_cpu=}" ;;
     esac
 done
 
-# Start internal timing
-start=$(date +%s%N)
-
-# TODO: Implement actual cuSPARSE CSR SpMM call here
-# For now, just simulate execution time based on matrix size
+# Check if reordered matrix exists
 REORDERED="$OUTDIR/reordered.mtx"
-if [[ -f "$REORDERED" ]]; then
-    # Extract matrix size for simulated timing
-    nnz=$(awk 'NR>1 && !/^%/ {print $3; exit}' "$REORDERED" 2>/dev/null || echo "1000")
-    # Simulate execution time: 1-5ms base + 0.001ms per nnz
-    sleep_time=$(awk -v nnz="$nnz" "BEGIN {print (0.001 + nnz * 0.000001)}")
-    sleep "$sleep_time"
+if [[ ! -f "$REORDERED" ]]; then
+    echo "Error: Reordered matrix not found at $REORDERED" >&2
+    echo "TIMING_MS:0"
+    exit 1
 fi
 
-# End internal timing and echo result
-end=$(date +%s%N)
-time_ms=$(( (end - start) / 1000000 ))
-echo "TIMING_MS:$time_ms"
+# Use the Python cuSPARSE implementation
+CUSPARSE_SCRIPT="$PROJECT_ROOT/scripts/cusparse_spmm.py"
+if [[ ! -f "$CUSPARSE_SCRIPT" ]]; then
+    echo "Error: cuSPARSE script not found at $CUSPARSE_SCRIPT" >&2
+    echo "TIMING_MS:0"
+    exit 1
+fi
 
-exit 0
+# Build command line arguments
+CUSPARSE_ARGS=("$REORDERED" "--alpha" "$alpha" "--beta" "$beta")
+if [[ "$force_cpu" == "true" ]]; then
+    CUSPARSE_ARGS+=("--force-cpu")
+fi
+
+# Execute the cuSPARSE implementation
+# The script will output timing to stdout and diagnostics to stderr
+set +e
+CUSPARSE_OUTPUT=$(python3 "$CUSPARSE_SCRIPT" "${CUSPARSE_ARGS[@]}" 2>&1)
+CUSPARSE_STATUS=$?
+set -e
+
+# Parse output - timing should be on stdout, diagnostics on stderr
+if echo "$CUSPARSE_OUTPUT" | grep -q "^TIMING_MS:"; then
+    # Extract timing from output
+    echo "$CUSPARSE_OUTPUT" | grep "^TIMING_MS:" | head -1
+else
+    echo "Error: No timing output from cuSPARSE implementation" >&2
+    echo "cuSPARSE output: $CUSPARSE_OUTPUT" >&2
+    echo "TIMING_MS:0"
+    exit 1
+fi
+
+exit $CUSPARSE_STATUS
