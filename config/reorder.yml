@@ -7,6 +7,14 @@ rcm:
   params:
     - {}
 
+rcm_graphblas:
+  type: "2D"
+  gpus: 0
+  time: "00:10:00"
+  modules: "python_graphblas"
+  params:
+    - {}
+
 ro:
   type: "2D"
   gpus: 0

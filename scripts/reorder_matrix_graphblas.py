@@ -32,20 +32,9 @@ from graphblas import Matrix  # type: ignore
 
 def load_mm(path: Path) -> Matrix:
     """Load a Matrix Market file into a GraphBLAS ``Matrix`` (0‑based)."""
-    # Use the correct method for loading Matrix Market files
-    import scipy.io
-    from scipy.sparse import coo_matrix
-    
-    # Load with scipy first, then convert to GraphBLAS
-    A_scipy = scipy.io.mmread(str(path))
-    if hasattr(A_scipy, 'tocoo'):
-        A_coo = A_scipy.tocoo()
-    else:
-        A_coo = coo_matrix(A_scipy)
-    
-    # Convert to GraphBLAS Matrix
-    return Matrix.from_coo(A_coo.row, A_coo.col, A_coo.data, 
-                          nrows=A_coo.shape[0], ncols=A_coo.shape[1])
+    # Use native GraphBLAS I/O to avoid scipy conversion overhead
+    from graphblas import io
+    return io.mmread(str(path))
 
 
 def _dtype_token(mat: Matrix) -> str:
@@ -70,30 +59,11 @@ def _dtype_token(mat: Matrix) -> str:
 def save_mm(path: Path, mat: Matrix) -> None:
     """Write *mat* to *path* using **1‑based** coordinates.
 
-    GraphBLAS' built‑in ``Matrix.to_mmio`` emits 0‑based indices, so we roll our
-    own. This is fast because we stream out the coordinate lists produced by
-    ``Matrix.to_lists`` which are already sorted by row.
+    Uses GraphBLAS native I/O with 1-based indexing for Matrix Market format.
     """
-
-    rows, cols, vals = mat.to_lists()
-    is_pattern = vals is None
-    if is_pattern:
-        vals = [1] * len(rows)  # placeholder, never written for pattern
-
-    nrows = mat.nrows
-    ncols = mat.ncols
-    nnz = len(rows)
-    token = _dtype_token(mat) if not is_pattern else "pattern"
-
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(f"%%MatrixMarket matrix coordinate {token} general\n")
-        f.write(f"{nrows} {ncols} {nnz}\n")
-        if is_pattern:
-            for r, c in zip(rows, cols):
-                f.write(f"{r + 1} {c + 1}\n")
-        else:
-            for r, c, v in zip(rows, cols, vals):
-                f.write(f"{r + 1} {c + 1} {v}\n")
+    from graphblas import io
+    # GraphBLAS io.mmwrite should handle 1-based indexing correctly for Matrix Market format
+    io.mmwrite(str(path), mat)
 
 # ---------------------------------------------------------------------------
 # Core routine – permutation application.

@@ -31,6 +31,7 @@ post_load:
 Available module sets:
 - `basic`: Minimal dependencies (GCC only)
 - `python_scipy`: Python with SciPy/NumPy for matrix operations  
+- `python_graphblas`: Python with GraphBLAS for efficient large matrix operations
 - `cuda_cusparse`: CUDA environment for GPU operations
 - `metis`: METIS library for graph partitioning
 
@@ -42,7 +43,13 @@ Techniques specify their module requirements in their configuration files:
 # config/reorder.yml
 rcm:
   type: "2D"
-  modules: "python_scipy"  # <-- NEW: Module requirement
+  modules: "python_scipy"  # <-- Uses SciPy for compatibility
+  params:
+    - symmetric: true
+
+rcm_graphblas:
+  type: "2D"
+  modules: "python_graphblas"  # <-- Uses GraphBLAS for performance
   params:
     - symmetric: true
 ```
