@@ -1,0 +1,11 @@
+# Module configuration for Python/GraphBLAS-based techniques
+name: "python_graphblas"
+description: "Python environment with GraphBLAS for efficient large matrix operations"
+modules:
+  - "python/3.11"
+  - "gcc/9.3.0"
+  - "openmpi/4.1.0"
+environment:
+  PYTHONPATH: "${PROJECT_ROOT}/scripts:${PYTHONPATH:-}"
+post_load:
+  - "python -c 'import graphblas; import numpy; print(f\"GraphBLAS {graphblas.__version__}, NumPy {numpy.__version__}\")'"

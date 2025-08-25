@@ -6,10 +6,11 @@ This file defines **canonical handles**, human-readable names, and short descrip
 
 ## 1 Reordering Techniques
 
-| Handle     | Full name                                         | Class                     | Status                    |
+| Handle      | Full name                                         | Class                     | Status                    |
 | ---------- | ------------------------------------------------- | ------------------------- | ------------------------- |
 | `identity` | Identity (no reordering)                          | Testing                   | ✅ Implemented            |
 | `rcm`      | Reverse Cuthill-McKee                             | Bandwidth                 | ✅ Implemented            |
+| `rcm_graphblas` | Reverse Cuthill-McKee (GraphBLAS-optimized)     | Bandwidth                 | ✅ Implemented            |
 | `ro`       | Rabbit Order                                      | Block-oriented            | ✅ Implemented            |
 | `amd`      | Approximate Minimum Degree                        | Fill-in / bandwidth       | 🟡 Planned (High Priority) |
 | `nd`       | Nested Dissection                                 | Fill-in / partition-based | 🟡 Planned (High Priority) |

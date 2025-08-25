@@ -18,8 +18,12 @@
 - [x] Added complete test suite including module loading and pipeline integration tests.
 - [x] Implemented `scripts/csv_helper.py` for structural metrics calculation.
 - [x] Added `scripts/reorder_matrix.py` and GraphBLAS alternative for matrix reordering.
+- [x] **Enhanced GraphBLAS integration for large matrix efficiency.**
+- [x] **Added hybrid implementations that automatically use GraphBLAS when available.**
+- [x] **Created GraphBLAS-optimized reordering techniques (rcm_graphblas).**
 - [x] Created launch scripts for submitting jobs via sbatch.
 - [x] Documented module loading system in `docs/MODULE_LOADING.md`.
+- [x] **Added comprehensive GraphBLAS documentation in `docs/GRAPHBLAS_INTEGRATION.md`.**
 - [x] Fixed documentation inconsistencies regarding parameter formats.
 - [x] Added missing Results/README.md file.
 - [x] Updated TOOLS.md to reflect actual implementation status.
@@ -88,9 +92,10 @@ The ReorderingSurvey2025 repository is a well-structured experimental framework 
 - **Testing framework**: Basic tests in place, can be extended
 - **Documentation**: Comprehensive with multiple README files and design documents
 
-#### ✅ Reordering Techniques (3/10 implemented)
+#### ✅ Reordering Techniques (4/10 implemented)
 - **Identity**: ✅ Testing permutation (no reordering)
 - **RCM**: ✅ Reverse Cuthill-McKee using SciPy
+- **RCM (GraphBLAS)**: ✅ GraphBLAS-optimized RCM for large matrix performance  
 - **Rabbit Order**: ✅ External tool integration with build system
 - **AMD**: 🟡 Planned - Approximate Minimum Degree
 - **ND**: 🟡 Planned - Nested Dissection (METIS)
@@ -103,10 +108,10 @@ The ReorderingSurvey2025 repository is a well-structured experimental framework 
 - **Advanced kernels**: 🟡 Planned (ASpT, Magicube, DASP, SMaT)
 
 #### ✅ Support Systems (Complete)
-- **CSV processing**: Complete with structural metrics calculation
-- **Matrix reordering**: Two implementations (SciPy and GraphBLAS)
+- **CSV processing**: Complete with structural metrics calculation using hybrid GraphBLAS/SciPy backend
+- **Matrix reordering**: Three implementations (SciPy, pure GraphBLAS, and hybrid)
 - **Job launching**: Shell scripts for sbatch submission
-- **Module management**: Automatic loading based on technique requirements
+- **Module management**: Automatic loading based on technique requirements, including GraphBLAS support
 - **Build system**: Bootstrap script for external dependencies
 
 ### Quality Metrics
