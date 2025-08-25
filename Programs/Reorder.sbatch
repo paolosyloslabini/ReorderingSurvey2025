@@ -32,7 +32,7 @@ else
     PARAM_ID="default"
 fi
 
-# Update paths to Unix style and ensure command compatibility
+# Update paths
 OUTDIR=$(realpath -m "$RESULTS_DIR/Reordering/$MATRIX_NAME/${TECH}_${PARAM_ID}")
 mkdir -p "$OUTDIR"
 PERM="$OUTDIR/permutation.g"
