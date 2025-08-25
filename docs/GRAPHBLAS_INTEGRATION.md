@@ -9,12 +9,12 @@ The framework now supports SuiteSparse GraphBLAS as an alternative to SciPy for 
 ## Key Components
 
 ### 1. Matrix I/O and Reordering
-- **`scripts/reorder_matrix_graphblas.py`**: Pure GraphBLAS implementation for matrix permutation
-- **`scripts/reorder_matrix.py`**: Hybrid implementation that automatically uses GraphBLAS when available
+- **`scripts/reorder_matrix.py`**: GraphBLAS implementation for matrix permutation (default)
+- **`scripts/reorder_matrix_scipy.py`**: SciPy-based implementation (for compatibility)
 
 ### 2. Structural Metrics Calculation
-- **`scripts/csv_helper_graphblas.py`**: Pure GraphBLAS implementation for computing bandwidth and block densities
-- **`scripts/csv_helper.py`**: Enhanced hybrid implementation that automatically detects and uses GraphBLAS
+- **`scripts/csv_helper.py`**: GraphBLAS implementation for computing bandwidth and block densities (default)
+- **`scripts/csv_helper_scipy.py`**: SciPy-based implementation (for compatibility)
 
 ### 3. Module Configuration
 - **`config/modules/python_graphblas.yml`**: Module definition for GraphBLAS-based techniques
@@ -32,12 +32,14 @@ GraphBLAS provides significant advantages for large matrices (>100,000 entries):
 - **Parallel execution**: Built-in parallelization for matrix operations
 
 ### Automatic Backend Selection
-The hybrid implementations automatically choose the best backend:
+GraphBLAS is now the default for matrix operations:
 ```python
-# Automatically uses GraphBLAS if available, falls back to SciPy
-A = read_mm(matrix_path)  # Uses GraphBLAS I/O when possible
-bandwidth = compute_bandwidth(A)  # Uses GraphBLAS operations when possible
+# Uses GraphBLAS for efficient sparse matrix operations
+A = read_mm(matrix_path)  # Uses GraphBLAS I/O
+bandwidth = compute_bandwidth(A)  # Uses GraphBLAS operations
 ```
+
+SciPy versions are preserved for compatibility in `*_scipy.py` files when needed.
 
 ## Usage
 
@@ -46,27 +48,28 @@ bandwidth = compute_bandwidth(A)  # Uses GraphBLAS operations when possible
 # Use GraphBLAS-optimized RCM
 sbatch Programs/Reorder.sbatch matrix.mtx rcm_graphblas
 
-# Hybrid approach (automatically uses GraphBLAS when available)
+# Standard approach (now uses GraphBLAS by default)
 sbatch Programs/Reorder.sbatch matrix.mtx rcm
 ```
 
 ### Direct Script Usage
 ```bash
-# Pure GraphBLAS matrix reordering
-python scripts/reorder_matrix_graphblas.py matrix.mtx perm.g 2D output.mtx
+# GraphBLAS matrix reordering (default)
+python scripts/reorder_matrix.py matrix.mtx perm.g 2D output.mtx
 
-# Pure GraphBLAS structural metrics
-python scripts/csv_helper_graphblas.py matrix.mtx results.csv
-
-# Hybrid approach (recommended)
+# GraphBLAS structural metrics (default)
 python scripts/csv_helper.py matrix.mtx results.csv
+
+# SciPy versions (for compatibility when needed)
+python scripts/reorder_matrix_scipy.py matrix.mtx perm.g 2D output.mtx
+python scripts/csv_helper_scipy.py matrix.mtx results.csv
 ```
 
 ## Backward Compatibility
 
-The integration maintains full backward compatibility:
-- All existing scripts and configurations continue to work unchanged
-- SciPy implementations remain as fallbacks when GraphBLAS is not available
+GraphBLAS is now the default implementation:
+- All existing scripts and configurations work unchanged
+- SciPy implementations are preserved in `*_scipy.py` files for compatibility when GraphBLAS is not available
 - Existing technique implementations are unaffected
 
 ## Configuration

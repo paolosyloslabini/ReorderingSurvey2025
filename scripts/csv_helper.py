@@ -1,9 +1,13 @@
-"""Merge structural metrics into reordering results.
+"""Merge structural metrics into reordering results using GraphBLAS.
 
 This utility consumes a matrix that has already been permuted by a
 reordering technique along with the CSV row emitted by the wrapper
-script. It automatically uses GraphBLAS for better performance with large
-matrices when available, falling back to SciPy for compatibility.
+script. It uses SuiteSparse GraphBLAS for better performance with large
+matrices, avoiding costly format conversions and leveraging efficient 
+GraphBLAS operations.
+
+Usage:
+    python csv_helper.py matrix.mtx results.csv
 """
 
 from __future__ import annotations
@@ -14,95 +18,59 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-# Try to import GraphBLAS for better performance, fall back to scipy
-try:
-    from graphblas import Matrix, io as graphblas_io
-    HAS_GRAPHBLAS = True
-except ImportError:
-    HAS_GRAPHBLAS = False
-    import scipy.io
-    import scipy.sparse
+from graphblas import Matrix  # type: ignore
 
 block_sizes = (4, 8, 16, 32, 64)
 
-def read_mm(path: Path):
-    """Load a Matrix Market file, preferring GraphBLAS for performance."""
-    if HAS_GRAPHBLAS:
-        return graphblas_io.mmread(str(path))
-    else:
-        return scipy.io.mmread(str(path))
+def read_mm(path: Path) -> Matrix:
+    """Load a Matrix Market file using GraphBLAS."""
+    from graphblas import io
+    return io.mmread(str(path))
 
 
-def compute_bandwidth(a) -> int:
-    """Return the half-bandwidth of ``a``."""
-    if HAS_GRAPHBLAS and hasattr(a, 'to_coo'):
-        # GraphBLAS Matrix
-        if a.nvals == 0:
-            return 0
-        rows, cols, _ = a.to_coo()
-        if len(rows) == 0:
-            return 0
-        rows = rows.astype(np.int64)
-        cols = cols.astype(np.int64)
-        return int(np.abs(rows - cols).max())
-    else:
-        # SciPy sparse matrix
-        if hasattr(a, 'tocoo'):
-            coo = a.tocoo()
-        else:
-            coo = a
-        
-        if coo.nnz == 0:
-            return 0
-        
-        rows = coo.row.astype(np.int64)
-        cols = coo.col.astype(np.int64)
-        return int(np.abs(rows - cols).max())
-
-
-def block_metrics(a, block: int) -> float:
-    """Return density of non-empty ``block``×``block`` tiles."""
-    if HAS_GRAPHBLAS and hasattr(a, 'to_coo'):
-        # GraphBLAS Matrix
-        if a.nvals == 0:
-            return 0.0
-        rows, cols, _ = a.to_coo()
-        if len(rows) == 0:
-            return 0.0
-        rows = rows.astype(np.int64)
-        cols = cols.astype(np.int64)
-        nrows, ncols = a.nrows, a.ncols
-    else:
-        # SciPy sparse matrix
-        if hasattr(a, 'tocoo'):
-            coo = a.tocoo()
-        else:
-            coo = a
-        
-        if coo.nnz == 0:
-            return 0.0
-        
-        rows = coo.row.astype(np.int64)
-        cols = coo.col.astype(np.int64)
-        nrows, ncols = coo.shape
+def compute_bandwidth(mat: Matrix) -> int:
+    """Return the half-bandwidth of the matrix using GraphBLAS operations."""
+    if mat.nvals == 0:
+        return 0
     
-    # Common block calculation logic
+    # Get coordinates directly from GraphBLAS matrix
+    rows, cols, _ = mat.to_coo()
+    if len(rows) == 0:
+        return 0
+    
+    rows = rows.astype(np.int64)
+    cols = cols.astype(np.int64)
+    return int(np.abs(rows - cols).max())
+
+
+def block_metrics(mat: Matrix, block: int) -> float:
+    """Return density of non-empty ``block``×``block`` tiles using GraphBLAS."""
+    if mat.nvals == 0:
+        return 0.0
+    
+    # Get coordinates directly from GraphBLAS matrix
+    rows, cols, _ = mat.to_coo()
+    if len(rows) == 0:
+        return 0.0
+    
+    rows = rows.astype(np.int64)
+    cols = cols.astype(np.int64)
+    
+    # Calculate block coordinates
     br = rows // block
     bc = cols // block
     pairs = np.stack([br, bc], axis=1)
     unique = np.unique(pairs, axis=0).shape[0]
-    total = ((nrows + block - 1) // block) * ((ncols + block - 1) // block)
+    
+    # Calculate total possible blocks
+    total = ((mat.nrows + block - 1) // block) * ((mat.ncols + block - 1) // block)
     return unique / total if total else 0.0
 
 
 def main(matrix: Path, csv: Path) -> None:
+    """Main function to add structural metrics to CSV using GraphBLAS."""
     A = read_mm(matrix)
     df = pd.read_csv(csv)
-
-    # Use the optimal backend for the given matrix type
-    backend = "GraphBLAS" if HAS_GRAPHBLAS and hasattr(A, 'to_coo') else "SciPy"
-    print(f"Using {backend} backend for matrix operations")
 
     bw = compute_bandwidth(A)
     densities = {b: block_metrics(A, b) for b in block_sizes}

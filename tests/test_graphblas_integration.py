@@ -32,9 +32,9 @@ def test_graphblas_csv_helper():
         csv.write_text("""matrix_name,reorder_tech,exit_code
 test,identity,0""")
         
-        # Run GraphBLAS csv_helper
+        # Run GraphBLAS csv_helper (now the default)
         result = subprocess.run([
-            "python", "scripts/csv_helper_graphblas.py",
+            "python", "scripts/csv_helper.py",
             str(matrix), str(csv)
         ], capture_output=True, text=True)
         
@@ -67,9 +67,9 @@ def test_graphblas_reorder_matrix():
         # Create output path
         output = tmpdir / "reordered.mtx"
         
-        # Run GraphBLAS reorder
+        # Run GraphBLAS reorder (now the default)
         result = subprocess.run([
-            "python", "scripts/reorder_matrix_graphblas.py",
+            "python", "scripts/reorder_matrix.py",
             str(matrix), str(perm), "1D", str(output)
         ], capture_output=True, text=True)
         
@@ -82,7 +82,7 @@ def test_graphblas_reorder_matrix():
 
 
 def test_hybrid_csv_helper_uses_graphblas():
-    """Test that hybrid csv_helper uses GraphBLAS when available"""
+    """Test that csv_helper (now GraphBLAS-based) works correctly"""
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir = Path(tmpdir)
         
@@ -98,14 +98,14 @@ def test_hybrid_csv_helper_uses_graphblas():
         csv.write_text("""matrix_name,reorder_tech,exit_code
 test,identity,0""")
         
-        # Run hybrid csv_helper
+        # Run csv_helper (now GraphBLAS-based)
         result = subprocess.run([
             "python", "scripts/csv_helper.py",
             str(matrix), str(csv)
         ], capture_output=True, text=True)
         
         assert result.returncode == 0
-        assert "Using GraphBLAS backend" in result.stdout
+        # Note: No longer need to check for "Using GraphBLAS backend" since it's pure GraphBLAS now
         
         # Check results are valid
         df = pd.read_csv(csv)
