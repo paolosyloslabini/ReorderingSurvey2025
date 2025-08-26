@@ -2,8 +2,15 @@
 """
 Test the new unified cuSPARSE implementations.
 Tests all cuSPARSE operations: CSR/BSR SpMV/SpMM with no CPU fallback.
+
+Adjusted for cross-platform execution:
+- Use sys.executable instead of hardcoded 'python3' on Windows.
+- Skip bash wrapper tests when 'bash' is unavailable.
+- Normalize paths for bash by using POSIX form.
 """
 import os
+import sys
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -30,7 +37,7 @@ def test_cucsrspmv_script_functionality():
         
         # Test basic functionality - should fail without GPU
         result = subprocess.run(
-            ["python3", str(script_path), matrix_path, "--alpha", "1.5", "--beta", "0.5"],
+            [sys.executable, str(script_path), matrix_path, "--alpha", "1.5", "--beta", "0.5"],
             capture_output=True,
             text=True
         )
@@ -76,7 +83,7 @@ def test_cucsrspmm_script_functionality():
         
         # Test basic functionality - should fail without GPU
         result = subprocess.run(
-            ["python3", str(script_path), matrix_path, "--alpha", "2.0", "--beta", "1.0"],
+            [sys.executable, str(script_path), matrix_path, "--alpha", "2.0", "--beta", "1.0"],
             capture_output=True,
             text=True
         )
@@ -122,6 +129,10 @@ def test_cucsrspmv_wrapper_with_parameters():
 """)
         
         wrapper_path = Path(__file__).parent.parent / "Programs" / "Multiplication" / "Techniques" / "operation_cucsrspmv.sh"
+
+        if shutil.which("bash") is None:
+            import pytest
+            pytest.skip("bash not available on this platform")
         
         env = os.environ.copy()
         env["PROJECT_ROOT"] = str(Path(__file__).parent.parent)
@@ -134,7 +145,7 @@ def test_cucsrspmv_wrapper_with_parameters():
         
         for params in test_cases:
             result = subprocess.run(
-                ["bash", str(wrapper_path), str(outdir)] + params,
+                ["bash", wrapper_path.as_posix(), Path(outdir).as_posix()] + params,
                 env=env,
                 capture_output=True,
                 text=True
@@ -181,13 +192,17 @@ def test_cucbrspmv_wrapper_functionality():
 """)
         
         wrapper_path = Path(__file__).parent.parent / "Programs" / "Multiplication" / "Techniques" / "operation_cucbrspmv.sh"
+
+        if shutil.which("bash") is None:
+            import pytest
+            pytest.skip("bash not available on this platform")
         
         env = os.environ.copy()
         env["PROJECT_ROOT"] = str(Path(__file__).parent.parent)
         
         # Test BSR SpMV with block size parameters
         result = subprocess.run(
-            ["bash", str(wrapper_path), str(outdir), "alpha=1.0", "beta=0.0", "block_size=4"],
+            ["bash", wrapper_path.as_posix(), Path(outdir).as_posix(), "alpha=1.0", "beta=0.0", "block_size=4"],
             env=env,
             capture_output=True,
             text=True
@@ -210,12 +225,16 @@ def test_cusparse_operations_error_handling():
         
         # Test without reordered.mtx file
         wrapper_path = Path(__file__).parent.parent / "Programs" / "Multiplication" / "Techniques" / "operation_cucsrspmv.sh"
+
+        if shutil.which("bash") is None:
+            import pytest
+            pytest.skip("bash not available on this platform")
         
         env = os.environ.copy()
         env["PROJECT_ROOT"] = str(Path(__file__).parent.parent)
         
         result = subprocess.run(
-            ["bash", str(wrapper_path), str(outdir), "alpha=1.0"],
+            ["bash", wrapper_path.as_posix(), Path(outdir).as_posix(), "alpha=1.0"],
             env=env,
             capture_output=True,
             text=True
@@ -249,7 +268,7 @@ def test_unified_cusparse_operations_script():
         
         for operation in operations:
             result = subprocess.run(
-                ["python3", str(script_path), matrix_path, operation, "--alpha", "1.0"],
+                [sys.executable, str(script_path), matrix_path, operation, "--alpha", "1.0"],
                 capture_output=True,
                 text=True
             )

@@ -9,9 +9,42 @@ import sys
 import time
 import argparse
 from pathlib import Path
+import threading
+import os
 import numpy as np
 import scipy.sparse as sp
 from scipy.io import mmread
+
+
+def _cupy_usable(timeout_sec: float = 2.0) -> bool:
+    """Best-effort, fast, non-blocking check that CuPy can use a GPU.
+
+    Runs CuPy initialization in a daemon thread and returns False on timeout
+    to avoid hanging tests/environments when CUDA driver interaction stalls.
+    """
+    usable_flag = {"ok": False}
+
+    def _probe():
+        try:
+            import cupy as cp  # noqa: WPS433 (import inside function)
+            # Fast runtime query; typically does not allocate
+            ndev = cp.cuda.runtime.getDeviceCount()
+            if ndev > 0:
+                # Light-touch allocation and sync
+                with cp.cuda.Device(0):
+                    arr = cp.arange(4, dtype=cp.float32)
+                    _ = float(arr.sum().get())
+                    cp.cuda.runtime.deviceSynchronize()
+                usable_flag["ok"] = True
+        except Exception:
+            # Any failure => not usable
+            usable_flag["ok"] = False
+
+    t = threading.Thread(target=_probe, daemon=True)
+    t.start()
+    t.join(timeout=timeout_sec)
+    # If thread is still alive, consider GPU not usable (avoid hang)
+    return usable_flag["ok"] if not t.is_alive() else False
 
 
 def detect_gpu_environment():
@@ -22,41 +55,39 @@ def detect_gpu_environment():
         'nvidia_smi': False,
         'cupy_available': False
     }
-    
+
     # Check for nvidia-smi
     import subprocess
     try:
-        result = subprocess.run(['nvidia-smi', '-L'], 
-                              capture_output=True, text=True, timeout=5)
+        result = subprocess.run(['nvidia-smi', '-L'],
+                                capture_output=True, text=True, timeout=3)
         if result.returncode == 0 and 'GPU' in result.stdout:
             gpu_info['nvidia_smi'] = True
     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
         pass
-    
-    # Check for CUDA runtime
+
+    # Check for CUDA toolchain (optional)
     try:
-        result = subprocess.run(['nvcc', '--version'], 
-                              capture_output=True, text=True, timeout=5)
+        result = subprocess.run(['nvcc', '--version'],
+                                capture_output=True, text=True, timeout=2)
         if result.returncode == 0:
             gpu_info['cuda_available'] = True
     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
         pass
-    
-    # Check for CuPy/cuSPARSE
+
+    # Check for CuPy and basic GPU usability (with timeout)
     try:
-        import cupy as cp
-        import cupyx.scipy.sparse
-        # Try to initialize CuPy
-        cp.cuda.Device(0).use()
-        cp.array([1, 2, 3])  # Simple test
+        import cupy as cp  # noqa: WPS433
+        import cupyx.scipy.sparse  # noqa: F401, WPS433
         gpu_info['cupy_available'] = True
-        gpu_info['cusparse_available'] = True
+        # Allow tuning detection timeout via env to accommodate slow driver init
+        detect_timeout = float(os.environ.get('CUSPARSE_DETECT_TIMEOUT_SEC', '2.0'))
+        if _cupy_usable(timeout_sec=detect_timeout):
+            gpu_info['cusparse_available'] = True
     except ImportError:
+        # CuPy not installed
         pass
-    except Exception:
-        # CuPy available but GPU not accessible
-        pass
-    
+
     return gpu_info
 
 

@@ -43,7 +43,7 @@ CUSPARSE_ARGS=("$REORDERED" "--alpha" "$alpha" "--beta" "$beta")
 # Execute the cuSPARSE implementation
 # The script will output timing to stdout and diagnostics to stderr
 set +e
-CUSPARSE_OUTPUT=$(python3 "$CUSPARSE_SCRIPT" "${CUSPARSE_ARGS[@]}" 2>&1)
+CUSPARSE_OUTPUT=$(python "$CUSPARSE_SCRIPT" "${CUSPARSE_ARGS[@]}" 2>&1)
 CUSPARSE_STATUS=$?
 set -e
 
