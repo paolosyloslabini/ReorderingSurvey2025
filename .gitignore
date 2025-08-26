@@ -18,3 +18,7 @@ __pycache__/
 *.pyo
 .pytest_cache/
 
+# Test backups and temporary files
+tests/old_tests_backup/
+tests/**/__pycache__/
+
