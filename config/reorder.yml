@@ -30,3 +30,11 @@ identity:
   modules: "basic"
   params:
     - {}
+
+amd:
+  type: "2D"
+  gpus: 0
+  time: "00:10:00"
+  modules: "python_scipy"
+  params:
+    - {}

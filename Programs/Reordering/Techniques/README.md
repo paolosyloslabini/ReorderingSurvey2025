@@ -10,9 +10,12 @@ reordering_<technique>.sh <matrix.mtx> <output_permutation.g> [key=value ...]
 
 - `identity` - Identity permutation (no reordering) for testing
 - `rcm` - Reverse Cuthill-McKee bandwidth reduction  
+- `amd` - Approximate Minimum Degree using SuiteSparse library
 - `ro` - Rabbit Order block-oriented reordering (requires external build)
 
 ## Wrapper Contract
+
+**Important**: This is a survey framework. We never want homemade implementations of existing routines, and we are not allowed to modify existing routines. We use tools as provided by their original authors.
 
 Each reordering wrapper must:
 1. Read a Matrix Market (.mtx) file
@@ -22,6 +25,16 @@ Each reordering wrapper must:
 5. Exit with status 0 on success
 
 ## Installation Notes
+
+### AMD (`amd`)
+
+AMD requires the SuiteSparse library to be installed:
+
+```bash
+sudo apt install libsuitesparse-dev  # Ubuntu/Debian
+```
+
+The wrapper uses SuiteSparse's AMD library directly via Python ctypes bindings, following the principle of using existing tools without modification.
 
 ### Rabbit Order (`ro`)
 
