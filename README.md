@@ -44,7 +44,7 @@ This repository hosts an experimental framework for studying how matrix reorderi
 - `config/` – YAML files describing available techniques and parameter sets
   - `config/modules/` – Module definitions for different dependency sets
 - `logs/` – Slurm job output
-- `tests/` – Test suite for validating the pipeline components
+- `tests/` – **Comprehensive test suite** with unit, integration, and end-to-end tests
 - `docs/` – Documentation including module loading system guide
 
 See `TODO.md` for current development status and `TOOLS.md` for the list of supported algorithms.
@@ -118,3 +118,31 @@ sbatch Programs/Multiply.sbatch \
 
 The `mult_impl` argument selects a wrapper script from
 `Programs/Multiplication/Techniques/`.
+
+## Testing
+
+The framework includes a comprehensive test suite with clear organization:
+
+```bash
+# Run complete test suite
+python tests/run_all.py
+
+# Run specific test categories  
+python tests/run_all.py unit         # Unit tests (29 tests, ~14s)
+python tests/run_all.py integration  # Integration tests
+python tests/run_all.py e2e         # End-to-end workflows
+
+# Quick pipeline validation
+python tests/run_all.py validation   # Complete reorder→multiply pipeline
+
+# Fast development mode
+python tests/run_all.py --fast       # Stop on first failure
+```
+
+### Test Categories
+- **Unit tests**: Individual component testing (reordering, multiplication, modules)
+- **Integration tests**: Component interaction testing  
+- **End-to-end tests**: Complete research workflow simulation
+- **Validation**: Full pipeline verification
+
+See `tests/README.md` for detailed testing documentation and contributor guidelines.
