@@ -7,11 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "ReorderingSurvey2025 Bootstrap Script"
 echo "======================================"
 echo ""
-echo "This script builds all external dependencies from source, including:"
-echo "  - Boost 1.58.0 (compatible with Rabbit Order)"
-echo "  - libnuma 2.0.14"
-echo "  - gperftools 2.10" 
-echo "  - Rabbit Order (sparse matrix reordering algorithm)"
+echo "This script builds all external dependencies"
 echo ""
 
 # Build Rabbit Order and all its dependencies
