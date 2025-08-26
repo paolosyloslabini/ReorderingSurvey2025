@@ -148,13 +148,17 @@ class TestCuSparseMultiplicationKernel:
             text=True
         )
         
-        assert result.returncode == 0, f"cuSPARSE wrapper failed: {result.stderr}"
-        assert "TIMING_MS:" in result.stdout, f"No timing found in stdout: {result.stdout}"
-        
-        # Extract timing value
-        timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
-        timing_ms = float(timing_line.split(':')[1])
-        assert timing_ms > 0, f"Invalid timing: {timing_ms}"
+        # cuSPARSE should either succeed with GPU or fail without it (no CPU fallback)
+        if result.returncode == 0:
+            assert "TIMING_MS:" in result.stdout, f"No timing found in stdout: {result.stdout}"
+            # Extract timing value
+            timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
+            timing_ms = float(timing_line.split(':')[1])
+            assert timing_ms > 0, f"Invalid timing: {timing_ms}"
+        else:
+            # Should fail without GPU - no CPU fallback
+            assert result.returncode == 1, "Should fail without GPU"
+            assert "TIMING_MS:0" in result.stdout, "Should output zero timing on GPU failure"
     
     def test_cusparse_wrapper_with_parameters(self, tmp_path):
         """Test cuSPARSE wrapper with various parameters."""
@@ -176,11 +180,10 @@ class TestCuSparseMultiplicationKernel:
         
         wrapper_path = Path(__file__).parent.parent.parent / "Programs" / "Multiplication" / "Techniques" / "operation_cucsrspmm.sh"
         
-        # Test different parameter combinations
+        # Test different parameter combinations (removed force_cpu since it's no longer supported)
         test_cases = [
             ["alpha=1.0", "beta=0.0"],
             ["alpha=2.5", "beta=1.5"],
-            ["alpha=0.5", "beta=0.0", "force_cpu=true"],
         ]
         
         for params in test_cases:
@@ -191,13 +194,17 @@ class TestCuSparseMultiplicationKernel:
                 text=True
             )
             
-            assert result.returncode == 0, f"cuSPARSE wrapper failed with params {params}: {result.stderr}"
-            assert "TIMING_MS:" in result.stdout, f"No timing with params {params}: {result.stdout}"
-            
-            # Extract and validate timing
-            timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
-            timing_ms = float(timing_line.split(':')[1])
-            assert timing_ms > 0, f"Invalid timing with params {params}: {timing_ms}"
+            # cuSPARSE should either succeed with GPU or fail without it (no CPU fallback)
+            if result.returncode == 0:
+                assert "TIMING_MS:" in result.stdout, f"No timing with params {params}: {result.stdout}"
+                # Extract and validate timing
+                timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
+                timing_ms = float(timing_line.split(':')[1])
+                assert timing_ms > 0, f"Invalid timing with params {params}: {timing_ms}"
+            else:
+                # Should fail without GPU - no CPU fallback
+                assert result.returncode == 1, f"Should fail without GPU for params {params}"
+                assert "TIMING_MS:0" in result.stdout, f"Should output zero timing for params {params}"
     
     def test_cusparse_gpu_environment_detection(self, tmp_path):
         """Test that cuSPARSE wrapper properly detects GPU environment."""
@@ -214,32 +221,36 @@ class TestCuSparseMultiplicationKernel:
             matrix_path = f.name
         
         try:
-            script_path = Path(__file__).parent.parent.parent / "scripts" / "cusparse_spmm.py"
+            script_path = Path(__file__).parent.parent.parent / "scripts" / "cucsrspmm.py"
             
-            # Test basic functionality
+            # Test basic functionality - should fail without GPU
             result = subprocess.run(
                 ["python3", str(script_path), matrix_path, "--alpha", "1.5", "--beta", "0.5"],
                 capture_output=True,
                 text=True
             )
             
-            assert result.returncode == 0, f"cuSPARSE script failed: {result.stderr}"
-            assert "TIMING_MS:" in result.stdout, f"No timing in output: {result.stdout}"
-            
             # Check that GPU environment detection occurs (should be in stderr)
             assert "GPU Environment:" in result.stderr, f"No GPU detection in stderr: {result.stderr}"
             
-            # Extract timing value
-            timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
-            timing_ms = float(timing_line.split(':')[1])
-            assert timing_ms > 0, f"Invalid timing: {timing_ms}"
+            # Should either succeed with GPU or fail without it - no CPU fallback
+            if result.returncode == 0:
+                assert "TIMING_MS:" in result.stdout, f"No timing in output: {result.stdout}"
+                timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
+                timing_ms = float(timing_line.split(':')[1])
+                assert timing_ms > 0, f"Invalid timing: {timing_ms}"
+            else:
+                # Should fail without GPU - no CPU fallback
+                assert result.returncode == 1, "Should fail without GPU"
+                assert "TIMING_MS:0" in result.stdout, "Should output zero timing on GPU failure"
+                assert "cuSPARSE/GPU environment not available" in result.stderr
             
         finally:
             import os
             os.unlink(matrix_path)
     
-    def test_cusparse_forced_cpu_mode(self, tmp_path):
-        """Test cuSPARSE forced CPU mode."""
+    def test_cusparse_no_cpu_fallback(self, tmp_path):
+        """Test that cuSPARSE no longer has CPU fallback mode."""
         # Create a test matrix in a temporary file
         test_matrix = """%%MatrixMarket matrix coordinate real general
 3 3 3
@@ -253,18 +264,22 @@ class TestCuSparseMultiplicationKernel:
             matrix_path = f.name
         
         try:
-            script_path = Path(__file__).parent.parent.parent / "scripts" / "cusparse_spmm.py"
+            script_path = Path(__file__).parent.parent.parent / "scripts" / "cucsrspmm.py"
             
-            # Test forced CPU mode
+            # Test that the script fails fast when GPU is not available
             result = subprocess.run(
-                ["python3", str(script_path), matrix_path, "--force-cpu"],
+                ["python3", str(script_path), matrix_path],
                 capture_output=True,
                 text=True
             )
             
-            assert result.returncode == 0, f"Forced CPU mode failed: {result.stderr}"
-            assert "TIMING_MS:" in result.stdout, f"No timing in CPU mode: {result.stdout}"
-            assert "Using CPU sparse matrix multiplication" in result.stderr
+            # Should fail without GPU - no CPU fallback
+            if result.returncode == 1:
+                assert "TIMING_MS:0" in result.stdout, "Should output zero timing on GPU failure"
+                assert "cuSPARSE/GPU environment not available" in result.stderr
+            elif result.returncode == 0:
+                # If GPU is available, should succeed
+                assert "TIMING_MS:" in result.stdout, f"No timing in GPU mode: {result.stdout}"
             
         finally:
             import os
