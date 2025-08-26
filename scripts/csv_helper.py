@@ -44,7 +44,11 @@ def compute_bandwidth(mat: Matrix) -> int:
 
 
 def block_metrics(mat: Matrix, block: int) -> float:
-    """Return density of non-empty ``block``×``block`` tiles using GraphBLAS."""
+    """Return density of non-empty ``block``×``block`` tiles using GraphBLAS.
+    
+    Block density is defined as: total number of nonzero entries in nonzero blocks
+    divided by the total area of nonzero blocks.
+    """
     if mat.nvals == 0:
         return 0.0
     
@@ -60,11 +64,11 @@ def block_metrics(mat: Matrix, block: int) -> float:
     br = rows // block
     bc = cols // block
     pairs = np.stack([br, bc], axis=1)
-    unique = np.unique(pairs, axis=0).shape[0]
+    num_nonzero_blocks = np.unique(pairs, axis=0).shape[0]
     
-    # Calculate total possible blocks
-    total = ((mat.nrows + block - 1) // block) * ((mat.ncols + block - 1) // block)
-    return unique / total if total else 0.0
+    # Calculate block density: total nonzeros / total area of nonzero blocks
+    total_area_nonzero_blocks = num_nonzero_blocks * (block * block)
+    return mat.nvals / total_area_nonzero_blocks if total_area_nonzero_blocks > 0 else 0.0
 
 
 def main(matrix: Path, csv: Path) -> None:

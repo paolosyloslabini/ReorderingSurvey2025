@@ -62,7 +62,11 @@ def compute_bandwidth(a) -> int:
 
 
 def block_metrics(a, block: int) -> float:
-    """Return density of non-empty ``block``×``block`` tiles."""
+    """Return density of non-empty ``block``×``block`` tiles.
+    
+    Block density is defined as: total number of nonzero entries in nonzero blocks
+    divided by the total area of nonzero blocks.
+    """
     if HAS_GRAPHBLAS and hasattr(a, 'to_coo'):
         # GraphBLAS Matrix
         if a.nvals == 0:
@@ -72,7 +76,7 @@ def block_metrics(a, block: int) -> float:
             return 0.0
         rows = rows.astype(np.int64)
         cols = cols.astype(np.int64)
-        nrows, ncols = a.nrows, a.ncols
+        nnz = a.nvals
     else:
         # SciPy sparse matrix
         if hasattr(a, 'tocoo'):
@@ -85,15 +89,17 @@ def block_metrics(a, block: int) -> float:
         
         rows = coo.row.astype(np.int64)
         cols = coo.col.astype(np.int64)
-        nrows, ncols = coo.shape
+        nnz = coo.nnz
     
     # Common block calculation logic
     br = rows // block
     bc = cols // block
     pairs = np.stack([br, bc], axis=1)
-    unique = np.unique(pairs, axis=0).shape[0]
-    total = ((nrows + block - 1) // block) * ((ncols + block - 1) // block)
-    return unique / total if total else 0.0
+    num_nonzero_blocks = np.unique(pairs, axis=0).shape[0]
+    
+    # Calculate block density: total nonzeros / total area of nonzero blocks
+    total_area_nonzero_blocks = num_nonzero_blocks * (block * block)
+    return nnz / total_area_nonzero_blocks if total_area_nonzero_blocks > 0 else 0.0
 
 
 def main(matrix: Path, csv: Path) -> None:
