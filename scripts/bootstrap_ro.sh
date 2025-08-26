@@ -106,24 +106,24 @@ build_with_local() {
     clone_ro
     local mf="$RO_DIR/demo/Makefile"
     cp "$mf" "$mf.orig"
-    cat > "$mf" <<'EOF_MAKE'
+    cat > "$mf" <<EOF_MAKE
 # Auto-generated Makefile using locally built dependencies
 DEPS_PREFIX = $DEPS
-CXXFLAGS += -I$(DEPS_PREFIX)/include -fopenmp -std=c++14 -mcx16 -O3 -DNDEBUG
-LDFLAGS  += -L$(DEPS_PREFIX)/lib
+CXXFLAGS += -I\$(DEPS_PREFIX)/include -fopenmp -std=c++14 -mcx16 -O3 -DNDEBUG
+LDFLAGS  += -L\$(DEPS_PREFIX)/lib
 LDLIBS   += -ltcmalloc_minimal -lnuma -lboost_atomic
 TARGETS   = reorder
 
-$(TARGETS): %: %.cc
-$(LINK.cc) -MD -o $@ $< $(LDLIBS)
-@cp $*.d .$*.P; \
-  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-      -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> .$*.P; \
-  rm -f $*.d
+\$(TARGETS): %: %.cc
+	\$(LINK.cc) -MD -o \$@ \$< \$(LDLIBS)
+	@cp \$*.d .\$*.P; \\
+	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\\\\$\$//' \\
+	      -e '/^\$\$/ d' -e 's/\$\$/ :/' < \$*.d >> .\$*.P; \\
+	  rm -f \$*.d
 
 .PHONY: clean
 clean:
-$(RM) $(TARGETS) $(TARGETS:%=.%.P)
+	\$(RM) \$(TARGETS) \$(TARGETS:%=.%.P)
 
 -include .*.P
 EOF_MAKE
