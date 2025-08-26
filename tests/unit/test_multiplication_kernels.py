@@ -356,3 +356,139 @@ class TestMultiplicationTimingIntegration:
         # Verify that internal timing is different from external (they measure different things)
         # Internal should be the sleep time (~100-200ms), external includes subprocess overhead
         assert abs(internal_time_ms - external_time_ms) > 5, "Internal and external timing should differ"
+
+
+class TestSMATMultiplicationKernel:
+    """Test suite for SMAT multiplication kernel."""
+    
+    def test_smat_wrapper_basic(self, tmp_path):
+        """Test basic SMAT wrapper functionality."""
+        test_env = setup_test_environment(tmp_path)
+        outdir = test_env["tmp_path"] / "output"
+        outdir.mkdir()
+        
+        # Create a test matrix
+        reordered_mtx = outdir / "reordered.mtx"
+        reordered_mtx.write_text("""%%MatrixMarket matrix coordinate real general
+4 4 6
+1 1 2.0
+1 2 1.0
+2 2 3.0
+3 3 4.0
+4 4 5.0
+2 3 1.5
+""")
+        
+        wrapper_path = Path(__file__).parent.parent.parent / "Programs" / "Multiplication" / "Techniques" / "operation_smat.sh"
+        
+        result = subprocess.run(
+            ["bash", str(wrapper_path), str(outdir)],
+            env=test_env["env"],
+            capture_output=True,
+            text=True
+        )
+        
+        # SMAT should fail without binary installation (expected behavior)
+        if result.returncode == 0:
+            # SMAT binary available - should succeed
+            assert "TIMING_MS:" in result.stdout, "No timing output when SMAT succeeds"
+        else:
+            # SMAT binary not available - should fail gracefully
+            assert result.returncode == 1, "Should fail without SMAT binary"
+            assert "TIMING_MS:0" in result.stdout, "Should output zero timing on SMAT failure"
+    
+    def test_smat_wrapper_with_parameters(self, tmp_path):
+        """Test SMAT wrapper with various parameters."""
+        test_env = setup_test_environment(tmp_path)
+        outdir = test_env["tmp_path"] / "output"
+        outdir.mkdir()
+        
+        # Create a test matrix
+        reordered_mtx = outdir / "reordered.mtx"
+        reordered_mtx.write_text("""%%MatrixMarket matrix coordinate real general
+4 4 6
+1 1 2.0
+1 2 1.0
+2 2 3.0
+3 3 4.0
+4 4 5.0
+2 3 1.5
+""")
+        
+        wrapper_path = Path(__file__).parent.parent.parent / "Programs" / "Multiplication" / "Techniques" / "operation_smat.sh"
+        
+        # Test different parameter combinations
+        test_cases = [
+            ["alpha=1.0", "beta=0.0"],
+            ["m=256", "n=256", "k=256"],
+            ["n_mult=2", "warmup_iterations=2", "profiling_iterations=5"],
+        ]
+        
+        for params in test_cases:
+            result = subprocess.run(
+                ["bash", str(wrapper_path), str(outdir)] + params,
+                env=test_env["env"],
+                capture_output=True,
+                text=True
+            )
+            
+            # SMAT should either succeed with binary or fail without it
+            if result.returncode == 0:
+                assert "TIMING_MS:" in result.stdout, f"No timing with params {params}: {result.stdout}"
+                # Extract and validate timing
+                timing_line = [line for line in result.stdout.split('\n') if line.startswith('TIMING_MS:')][0]
+                timing_ms = float(timing_line.split(':')[1])
+                assert timing_ms >= 0, f"Invalid timing with params {params}: {timing_ms}"
+            else:
+                assert "TIMING_MS:0" in result.stdout, f"Should output zero timing on failure with params {params}"
+    
+    def test_smat_environment_detection(self, tmp_path):
+        """Test that SMAT wrapper properly detects SMAT environment."""
+        test_env = setup_test_environment(tmp_path)
+        outdir = test_env["tmp_path"] / "output"
+        outdir.mkdir()
+        
+        # Create a test matrix
+        reordered_mtx = outdir / "reordered.mtx"
+        reordered_mtx.write_text("""%%MatrixMarket matrix coordinate real general
+2 2 2
+1 1 1.0
+2 2 1.0
+""")
+        
+        wrapper_path = Path(__file__).parent.parent.parent / "Programs" / "Multiplication" / "Techniques" / "operation_smat.sh"
+        
+        result = subprocess.run(
+            ["bash", str(wrapper_path), str(outdir)],
+            env=test_env["env"],
+            capture_output=True,
+            text=True
+        )
+        
+        # Should fail gracefully without SMAT binary and output status
+        # The wrapper captures all output from Python script, so environment info should be somewhere
+        combined_output = result.stdout + result.stderr
+        assert ("SMAT Environment:" in combined_output or 
+                "SMAT binary" in combined_output or
+                "SMAT script not found" in combined_output or
+                "TIMING_MS:0" in result.stdout), \
+            f"Should report SMAT status somewhere. stdout: {result.stdout}, stderr: {result.stderr}"
+    
+    def test_smat_error_handling(self, tmp_path):
+        """Test SMAT wrapper error handling."""
+        test_env = setup_test_environment(tmp_path)
+        outdir = test_env["tmp_path"] / "output"
+        outdir.mkdir()
+        
+        # Test without reordered.mtx file
+        wrapper_path = Path(__file__).parent.parent.parent / "Programs" / "Multiplication" / "Techniques" / "operation_smat.sh"
+        
+        result = subprocess.run(
+            ["bash", str(wrapper_path), str(outdir), "alpha=1.0"],
+            env=test_env["env"],
+            capture_output=True,
+            text=True
+        )
+        
+        assert result.returncode == 1, "Should fail when reordered.mtx is missing"
+        assert "TIMING_MS:0" in result.stdout, "Should output zero timing on error"

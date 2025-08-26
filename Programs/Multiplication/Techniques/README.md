@@ -10,6 +10,7 @@ operation_<kernel>.sh <output_directory> [key=value ...]
 
 - `mock` - Mock multiplication kernel for testing (always succeeds)
 - `cucsrspmm` - NVIDIA cuSPARSE CSR SpMM with real GPU implementation and CPU fallback
+- `smat` - SMAT (SMaT) Tensor Core-accelerated sparse matrix multiplication
 
 ## Wrapper Contract
 
@@ -24,6 +25,16 @@ Each multiplication wrapper must:
 - `alpha` - Scalar multiplier for the matrix product (default: 1.0)
 - `beta` - Scalar multiplier for the result accumulation (default: 0.0)  
 - `force_cpu` - Force CPU implementation even if GPU available (default: false)
+
+### smat Parameters
+- `alpha` - Scalar multiplier for the matrix product (default: 1.0, for compatibility)
+- `beta` - Scalar multiplier for the result accumulation (default: 0.0, for compatibility)
+- `m` - M dimension for SpMM (default: 512)
+- `n` - N dimension for SpMM (default: 512)
+- `k` - K dimension for SpMM (default: 512)
+- `n_mult` - N multiplier (n_mult * MMA_N, default: 1)
+- `warmup_iterations` - Number of warmup iterations (default: 1)
+- `profiling_iterations` - Number of profiling iterations (default: 10)
 
 The timing and other metrics are handled by the calling script (`Multiply.sbatch`).
 

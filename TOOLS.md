@@ -34,7 +34,7 @@ This file defines **canonical handles**, human-readable names, and short descrip
 | `aspt`      | ASpT (Adaptive SpMM GPU)            | GPU           | 🟡 Planned (Medium)|
 | `magicube`  | Magicube                            | GPU           | 🟡 Planned (Medium)|
 | `dasp`      | DASP                                | GPU           | 🟡 Planned (Low)   |
-| `smat`      | SMaT                                | CPU/GPU       | 🟡 Planned (Low)   |
+| `smat`      | SMaT                                | CPU/GPU       | ✅ Implemented     |
 
 > **Implementation note** Each kernel is wrapped by `operation_<handle>.sh` residing in `Programs/Multiplication/Techniques/`.
 

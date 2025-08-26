@@ -47,6 +47,23 @@ cucbrspmv:
       block_size: 8
       n_iterations: 10
 
+smat:
+  gpus: 1
+  time: "00:15:00"
+  modules: "cuda_cusparse"
+  params:
+    - alpha: 1.0
+      beta: 0.0
+      m: 512
+      n: 512
+      k: 512
+    - alpha: 1.0
+      beta: 0.0
+      m: 1024
+      n: 1024
+      k: 1024
+      n_mult: 2
+
 mock:
   gpus: 0
   time: "00:05:00"
