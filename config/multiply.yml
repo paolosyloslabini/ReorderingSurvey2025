@@ -9,6 +9,16 @@ cucsrspmm:
     - alpha: 2.0
       beta: 1.0
 
+csrcusparse:
+  gpus: 1
+  time: "00:10:00"
+  modules: "cuda_cusparse"
+  params:
+    - alpha: 1.0
+      beta: 0.0
+    - alpha: 2.0
+      beta: 1.0
+
 mock:
   gpus: 0
   time: "00:05:00"
