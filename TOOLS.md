@@ -28,10 +28,9 @@ This file defines **canonical handles**, human-readable names, and short descrip
 | ----------- | ----------------------------------- | ------------- | ------------------ |
 | `mock`      | Mock operation for testing          | CPU           | ✅ Implemented     |
 | `cucsrspmm` | NVIDIA cuSPARSE CSR SpMM            | GPU (CUDA)    | ✅ Implemented     |
-| `csrcusparse` | Direct CSR cuSPARSE multiplication | GPU (CUDA)    | ✅ Implemented     |
-| `cucsrspmv` | NVIDIA cuSPARSE CSR SpMV            | GPU (CUDA)    | 🟡 Planned (High)  |
-| `cucbrspmm` | NVIDIA cuSPARSE BSR SpMM            | GPU (CUDA)    | 🟡 Planned (High)  |
-| `cucbrspmv` | NVIDIA cuSPARSE BSR SpMV            | GPU (CUDA)    | 🟡 Planned (Medium)|
+| `cucsrspmv` | NVIDIA cuSPARSE CSR SpMV            | GPU (CUDA)    | ✅ Implemented     |
+| `cucbrspmm` | NVIDIA cuSPARSE BSR SpMM            | GPU (CUDA)    | ✅ Implemented     |
+| `cucbrspmv` | NVIDIA cuSPARSE BSR SpMV            | GPU (CUDA)    | ✅ Implemented     |
 | `aspt`      | ASpT (Adaptive SpMM GPU)            | GPU           | 🟡 Planned (Medium)|
 | `magicube`  | Magicube                            | GPU           | 🟡 Planned (Medium)|
 | `dasp`      | DASP                                | GPU           | 🟡 Planned (Low)   |

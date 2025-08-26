@@ -81,7 +81,7 @@ class TestMultiplicationModuleIntegration:
             cleanup_pipeline_test(raw_matrix_path)
     
     def test_cusparse_multiplication_with_cuda_modules(self, tmp_path):
-        """Test cuSPARSE multiplication with CUDA module set."""
+        """Test cuSPARSE multiplication with CUDA module set (fails without GPU)."""
         # First create a reordered matrix through the reordering pipeline
         matrices = get_test_matrices()
         matrix_path = create_test_matrix(tmp_path, matrices["connected_5x5"], "dataset", "matrix")
@@ -95,28 +95,32 @@ class TestMultiplicationModuleIntegration:
         reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "rcm")
         results_csv = reorder_output["csv_file"]
         
-        # Run multiplication
+        # Run multiplication - should fail without GPU (no CPU fallback)
         mult_result = run_multiplication_test(results_csv, "cucsrspmm", test_env["env"])
-        assert mult_result.returncode == 0, f"cuSPARSE multiplication failed: {mult_result.stderr}"
         
         # Verify module loading messages
         assert "Loading module set: cuda_cusparse for technique cucsrspmm" in mult_result.stderr
         assert "Module loading completed for multiply/cucsrspmm" in mult_result.stderr
         
-        # Verify GPU environment detection (may indicate no GPU available)
-        assert "GPU Environment:" in mult_result.stderr or "GPU not available" in mult_result.stderr
-        
-        # Verify output files
-        mult_output = validate_multiplication_output(test_env["results_dir"], "matrix", "rcm", "cucsrspmm")
-        
-        # Verify CSV contains both reordering and multiplication data
-        csv_data = mult_output["csv_data"]
-        assert csv_data["matrix_name"] == "matrix"
-        assert csv_data["reorder_tech"] == "rcm"
-        assert csv_data["mult_type"] == "cucsrspmm"
-        assert csv_data["exit_code"] == 0
-        assert "mult_time_ms" in csv_data
-        assert csv_data["mult_time_ms"] > 0
+        # cuSPARSE should either succeed with GPU or fail without it (no CPU fallback)
+        if mult_result.returncode == 0:
+            # GPU available - should succeed
+            # Verify output files
+            mult_output = validate_multiplication_output(test_env["results_dir"], "matrix", "rcm", "cucsrspmm")
+            
+            # Verify CSV contains both reordering and multiplication data
+            csv_data = mult_output["csv_data"]
+            assert csv_data["matrix_name"] == "matrix"
+            assert csv_data["reorder_tech"] == "rcm"
+            assert csv_data["mult_type"] == "cucsrspmm"
+            assert csv_data["exit_code"] == 0
+            assert "mult_time_ms" in csv_data
+            assert csv_data["mult_time_ms"] > 0
+        else:
+            # No GPU available - should fail (expected behavior)
+            assert mult_result.returncode == 1, "Should fail without GPU"
+            # Verify it properly indicates GPU failure
+            assert "GPU not available" in mult_result.stderr or "CUDA not available" in mult_result.stderr
     
     def test_multiplication_with_parameters(self, tmp_path):
         """Test multiplication with parameter sets."""

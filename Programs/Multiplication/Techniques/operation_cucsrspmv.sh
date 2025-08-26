@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# operation_cucsrspmm.sh <outdir> [key=value ...]
-# NVIDIA cuSPARSE CSR SpMM wrapper (updated to remove CPU fallback)
+# operation_cucsrspmv.sh <outdir> [key=value ...]
+# NVIDIA cuSPARSE CSR SpMV wrapper
 set -euo pipefail
 
 # Load cluster environment
@@ -13,10 +13,12 @@ PARAMS=("$@")
 # Extract parameters
 alpha="1.0"
 beta="0.0"
+n_iterations="10"
 for kv in "${PARAMS[@]}"; do
     case $kv in
         alpha=*) alpha="${kv#alpha=}" ;;
         beta=*) beta="${kv#beta=}" ;;
+        n_iterations=*) n_iterations="${kv#n_iterations=}" ;;
     esac
 done
 
@@ -28,17 +30,16 @@ if [[ ! -f "$REORDERED" ]]; then
     exit 1
 fi
 
-# Use the Python cuSPARSE CSR SpMM implementation
-CUSPARSE_SCRIPT="$PROJECT_ROOT/scripts/cucsrspmm.py"
+# Use the Python cuSPARSE CSR SpMV implementation
+CUSPARSE_SCRIPT="$PROJECT_ROOT/scripts/cucsrspmv.py"
 if [[ ! -f "$CUSPARSE_SCRIPT" ]]; then
-    echo "Error: cuSPARSE CSR SpMM script not found at $CUSPARSE_SCRIPT" >&2
+    echo "Error: cuSPARSE CSR SpMV script not found at $CUSPARSE_SCRIPT" >&2
     echo "TIMING_MS:0"
     exit 1
 fi
 
 # Build command line arguments
-CUSPARSE_ARGS=("$REORDERED" "--alpha" "$alpha" "--beta" "$beta")
-# Note: force_cpu option removed - GPU operations fail if GPU not available
+CUSPARSE_ARGS=("$REORDERED" "--alpha" "$alpha" "--beta" "$beta" "--n-iterations" "$n_iterations")
 
 # Execute the cuSPARSE implementation
 # The script will output timing to stdout and diagnostics to stderr
@@ -52,7 +53,7 @@ if echo "$CUSPARSE_OUTPUT" | grep -q "^TIMING_MS:"; then
     # Extract timing from output
     echo "$CUSPARSE_OUTPUT" | grep "^TIMING_MS:" | head -1
 else
-    echo "Error: No timing output from cuSPARSE CSR SpMM implementation" >&2
+    echo "Error: No timing output from cuSPARSE CSR SpMV implementation" >&2
     echo "cuSPARSE output: $CUSPARSE_OUTPUT" >&2
     echo "TIMING_MS:0"
     exit 1
