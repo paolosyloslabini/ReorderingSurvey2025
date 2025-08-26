@@ -139,6 +139,32 @@ class TestRCMReordering:
         assert_valid_permutation(output_data["permutation"], 4)
 
 
+class TestRabbitOrderReordering:
+    """Test suite for Rabbit Order reordering technique."""
+    
+    def test_ro_connected_matrix(self, tmp_path):
+        """Test Rabbit Order reordering with connected matrix."""
+        matrices = get_test_matrices()
+        matrix_path = create_test_matrix(tmp_path, matrices["connected_5x5"], "dataset", "matrix")
+        test_env = setup_test_environment(tmp_path)
+        
+        result = run_reordering_test(matrix_path, "ro", test_env["env"])
+        assert result.returncode == 0, f"Rabbit Order reordering failed: {result.stderr}"
+        
+        # Validate output
+        output_data = validate_reordering_output(test_env["results_dir"], "matrix", "ro")
+        
+        # Rabbit Order should produce valid permutation
+        assert_valid_permutation(output_data["permutation"], 5)
+        
+        # Validate CSV data
+        assert_valid_csv_data(output_data["csv_data"], "ro", "matrix")
+        assert output_data["csv_data"]["n_rows"] == 5
+        assert output_data["csv_data"]["n_cols"] == 5
+        assert output_data["csv_data"]["nnz"] == 13
+        assert output_data["csv_data"]["reorder_type"] == "2D"  # From config
+
+
 class TestReorderingOutputFormats:
     """Test suite for validating reordering output formats."""
     
