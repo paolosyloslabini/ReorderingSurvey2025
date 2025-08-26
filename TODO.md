@@ -32,7 +32,7 @@
 
 ### High Priority (Immediate)
 1. **Implement core reordering techniques**:
-   - Add `reordering_amd.sh` using SciPy's `minimum_degree_ordering`
+   - ✅ Add `reordering_amd.sh` using SuiteSparse AMD library
    - Add `reordering_nd.sh` using METIS nested dissection
    - Add parameter validation to existing wrappers
 
@@ -92,12 +92,12 @@ The ReorderingSurvey2025 repository is a well-structured experimental framework 
 - **Testing framework**: Basic tests in place, can be extended
 - **Documentation**: Comprehensive with multiple README files and design documents
 
-#### ✅ Reordering Techniques (4/10 implemented)
+#### ✅ Reordering Techniques (5/10 implemented)
 - **Identity**: ✅ Testing permutation (no reordering)
 - **RCM**: ✅ Reverse Cuthill-McKee using SciPy
 - **RCM (GraphBLAS)**: ✅ GraphBLAS-optimized RCM for large matrix performance  
 - **Rabbit Order**: ✅ External tool integration with build system
-- **AMD**: 🟡 Planned - Approximate Minimum Degree
+- **AMD**: ✅ Approximate Minimum Degree using SuiteSparse
 - **ND**: 🟡 Planned - Nested Dissection (METIS)
 - **Others**: 🟡 6 additional techniques planned (see TOOLS.md)
 
