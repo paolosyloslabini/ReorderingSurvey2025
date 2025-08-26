@@ -52,17 +52,12 @@ smat:
   time: "00:15:00"
   modules: "cuda_cusparse"
   params:
-    - alpha: 1.0
-      beta: 0.0
-      m: 512
-      n: 512
-      k: 512
-    - alpha: 1.0
-      beta: 0.0
-      m: 1024
-      n: 1024
-      k: 1024
-      n_mult: 2
+    - n_mult: 1
+      warmup_iterations: 1
+      profiling_iterations: 10
+    - n_mult: 2
+      warmup_iterations: 2
+      profiling_iterations: 20
 
 mock:
   gpus: 0

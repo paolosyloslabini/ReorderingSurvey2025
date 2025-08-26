@@ -466,11 +466,10 @@ class TestSMATMultiplicationKernel:
         )
         
         # Should fail gracefully without SMAT binary and output status
-        # The wrapper captures all output from Python script, so environment info should be somewhere
         combined_output = result.stdout + result.stderr
-        assert ("SMAT Environment:" in combined_output or 
-                "SMAT binary" in combined_output or
-                "SMAT script not found" in combined_output or
+        assert ("SMAT binary" in combined_output or
+                "hgemm" in combined_output or
+                "Auto-detected matrix dimensions" in combined_output or
                 "TIMING_MS:0" in result.stdout), \
             f"Should report SMAT status somewhere. stdout: {result.stdout}, stderr: {result.stderr}"
     
