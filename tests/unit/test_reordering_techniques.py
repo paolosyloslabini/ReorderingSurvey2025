@@ -139,6 +139,55 @@ class TestRCMReordering:
         assert_valid_permutation(output_data["permutation"], 4)
 
 
+class TestAMDReordering:
+    """Test suite for AMD (Approximate Minimum Degree) reordering technique."""
+    
+    def test_amd_basic_functionality(self, tmp_path):
+        """Test basic AMD reordering on a structured matrix."""
+        matrices = get_test_matrices()
+        matrix_path = create_test_matrix(tmp_path, matrices["structured_6x6"], "dataset", "matrix")
+        test_env = setup_test_environment(tmp_path)
+        
+        result = run_reordering_test(matrix_path, "amd", test_env["env"])
+        assert result.returncode == 0, f"AMD reordering failed: {result.stderr}"
+        
+        # Parse and validate output
+        output_data = validate_reordering_output(test_env["results_dir"], "matrix", "amd")
+        assert_valid_permutation(output_data["permutation"], 6)
+        assert_valid_csv_data(output_data["csv_data"], "amd", "matrix")
+        
+        # AMD should typically produce a non-identity permutation for structured matrices
+        # but we don't require a specific order since AMD is heuristic
+    
+    def test_amd_with_symmetric_parameter(self, tmp_path):
+        """Test AMD reordering with symmetric=true parameter."""
+        matrices = get_test_matrices()
+        matrix_path = create_test_matrix(tmp_path, matrices["connected_5x5"], "dataset", "matrix")
+        test_env = setup_test_environment(tmp_path)
+        
+        result = run_reordering_test(matrix_path, "amd", test_env["env"], ["symmetric=true"])
+        assert result.returncode == 0, f"AMD symmetric reordering failed: {result.stderr}"
+        
+        # Verify output structure - parameters create different directory names
+        output_data = validate_reordering_output(test_env["results_dir"], "matrix", "amd", "symmetric-true")
+        assert_valid_permutation(output_data["permutation"], 5)
+        assert_valid_csv_data(output_data["csv_data"], "amd", "matrix")
+    
+    def test_amd_identity_matrix(self, tmp_path):
+        """Test AMD reordering on an identity matrix."""
+        matrices = get_test_matrices()
+        matrix_path = create_test_matrix(tmp_path, matrices["identity_4x4"], "dataset", "matrix")
+        test_env = setup_test_environment(tmp_path)
+        
+        result = run_reordering_test(matrix_path, "amd", test_env["env"])
+        assert result.returncode == 0, f"AMD reordering failed on identity matrix: {result.stderr}"
+        
+        # Parse and validate output
+        output_data = validate_reordering_output(test_env["results_dir"], "matrix", "amd")
+        assert_valid_permutation(output_data["permutation"], 4)
+        assert_valid_csv_data(output_data["csv_data"], "amd", "matrix")
+
+
 class TestReorderingOutputFormats:
     """Test suite for validating reordering output formats."""
     

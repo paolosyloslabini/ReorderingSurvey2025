@@ -32,7 +32,7 @@
 
 ### High Priority (Immediate)
 1. **Implement core reordering techniques**:
-   - Add `reordering_amd.sh` using SciPy's `minimum_degree_ordering`
+   - ✅ Add `reordering_amd.sh` using custom AMD implementation
    - Add `reordering_nd.sh` using METIS nested dissection
    - Add parameter validation to existing wrappers
 
@@ -92,14 +92,14 @@ The ReorderingSurvey2025 repository is a well-structured experimental framework 
 - **Testing framework**: Basic tests in place, can be extended
 - **Documentation**: Comprehensive with multiple README files and design documents
 
-#### ✅ Reordering Techniques (4/10 implemented)
+#### ✅ Reordering Techniques (5/10 implemented)
 - **Identity**: ✅ Testing permutation (no reordering)
 - **RCM**: ✅ Reverse Cuthill-McKee using SciPy
 - **RCM (GraphBLAS)**: ✅ GraphBLAS-optimized RCM for large matrix performance  
 - **Rabbit Order**: ✅ External tool integration with build system
-- **AMD**: 🟡 Planned - Approximate Minimum Degree
+- **AMD**: ✅ Approximate Minimum Degree with custom implementation
 - **ND**: 🟡 Planned - Nested Dissection (METIS)
-- **Others**: 🟡 6 additional techniques planned (see TOOLS.md)
+- **Others**: 🟡 5 additional techniques planned (see TOOLS.md)
 
 #### ✅ Multiplication Kernels (2/9 implemented)  
 - **Mock**: ✅ Testing kernel with simulated timing
@@ -134,10 +134,11 @@ The repository is in excellent condition for:
 - **Build system**: Automated via scripts/bootstrap.sh
 
 ### Immediate Action Items
-1. Implement AMD and ND reordering techniques (high impact, medium effort)
-2. ✅ Complete cuSPARSE kernel implementation (high impact, low effort)  
-3. Enhance test suite with real matrices (medium impact, medium effort)
-4. Add comprehensive error handling (medium impact, low effort)
+1. ✅ Implement AMD reordering technique (high impact, medium effort)
+2. Implement ND reordering technique (high impact, medium effort)
+3. ✅ Complete cuSPARSE kernel implementation (high impact, low effort)  
+4. Enhance test suite with real matrices (medium impact, medium effort)
+5. Add comprehensive error handling (medium impact, low effort)
 
 ### Risk Assessment
 - **Low risk**: Core infrastructure is stable and well-tested
