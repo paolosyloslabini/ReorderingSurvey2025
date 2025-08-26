@@ -271,14 +271,14 @@ class TestReorderingMultiplicationPipeline:
         reorder_result = run_reordering_test(matrix_path, "rcm", test_env["env"], ["symmetric=true"])
         assert reorder_result.returncode == 0, f"RCM reordering with params failed: {reorder_result.stderr}"
         
-        reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "rcm", "symmetric")
+        reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "rcm", "symmetric-true")
         assert reorder_output["csv_data"]["reord_param_set"] == "symmetric=true"
         
         # Multiplication with parameters
         mult_result = run_multiplication_test(reorder_output["csv_file"], "mock", test_env["env"], ["alpha=2.5"])
         assert mult_result.returncode == 0, f"Mock multiplication with params failed: {mult_result.stderr}"
         
-        mult_output = validate_multiplication_output(test_env["results_dir"], "matrix", "rcm_symmetric", "mock")
+        mult_output = validate_multiplication_output(test_env["results_dir"], "matrix", "rcm", "mock", "symmetric-true")
         csv_data = mult_output["csv_data"]
         
         # Verify parameter propagation
