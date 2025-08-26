@@ -5,3 +5,4 @@ scipy
 python-graphblas
 PyMetis
 pyyaml
+pytest

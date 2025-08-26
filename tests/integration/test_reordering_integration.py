@@ -77,7 +77,7 @@ class TestReorderingModuleIntegration:
         assert "Module loading completed for reorder/rcm" in result.stderr
         
         # Verify output with parameter set
-        output_data = validate_reordering_output(test_env["results_dir"], "matrix", "rcm", "symmetric")
+        output_data = validate_reordering_output(test_env["results_dir"], "matrix", "rcm", "symmetric-true")
         
         # Verify permutation is valid
         assert_valid_permutation(output_data["permutation"], 5)
