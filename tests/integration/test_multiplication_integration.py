@@ -121,30 +121,33 @@ class TestMultiplicationModuleIntegration:
     def test_multiplication_with_parameters(self, tmp_path):
         """Test multiplication with parameter sets."""
         # Create reordered matrix
-        matrices = get_test_matrices()
-        matrix_path = create_test_matrix(tmp_path, matrices["identity_4x4"], "dataset", "matrix")
-        test_env = setup_test_environment(tmp_path)
+        matrix_path, test_env, raw_matrix_path = setup_complete_pipeline_test(
+            tmp_path, "identity_4x4", "dataset", "matrix"
+        )
         
-        # Run reordering first
-        reorder_result = run_reordering_test(matrix_path, "identity", test_env["env"])
-        assert reorder_result.returncode == 0, f"Reordering failed: {reorder_result.stderr}"
-        
-        # Get reordering output
-        reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "identity")
-        results_csv = reorder_output["csv_file"]
-        
-        # Test different parameter combinations
-        param_tests = [
-            ["alpha=2.0"],
-            ["alpha=1.5", "beta=0.5"],
-        ]
-        
-        for params in param_tests:
-            mult_result = run_multiplication_test(results_csv, "mock", test_env["env"], params)
-            assert mult_result.returncode == 0, f"Mock multiplication with params {params} failed: {mult_result.stderr}"
+        try:
+            # Run reordering first
+            reorder_result = run_reordering_test(matrix_path, "identity", test_env["env"])
+            assert reorder_result.returncode == 0, f"Reordering failed: {reorder_result.stderr}"
             
-            # Should complete successfully with any parameters
-            assert "Module loading completed for multiply/mock" in mult_result.stderr
+            # Get reordering output
+            reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "identity")
+            results_csv = reorder_output["csv_file"]
+            
+            # Test different parameter combinations
+            param_tests = [
+                ["alpha=2.0"],
+                ["alpha=1.5", "beta=0.5"],
+            ]
+            
+            for params in param_tests:
+                mult_result = run_multiplication_test(results_csv, "mock", test_env["env"], params)
+                assert mult_result.returncode == 0, f"Mock multiplication with params {params} failed: {mult_result.stderr}"
+                
+                # Should complete successfully with any parameters
+                assert "Module loading completed for multiply/mock" in mult_result.stderr
+        finally:
+            cleanup_pipeline_test(raw_matrix_path)
     
     def test_multiplication_error_handling(self, tmp_path):
         """Test multiplication error handling."""
@@ -304,53 +307,59 @@ class TestTimingIntegration:
     
     def test_timing_consistency(self, tmp_path):
         """Test that timing data is consistent across pipeline stages."""
-        matrices = get_test_matrices()
-        matrix_path = create_test_matrix(tmp_path, matrices["identity_4x4"], "dataset", "matrix")
-        test_env = setup_test_environment(tmp_path)
+        matrix_path, test_env, raw_matrix_path = setup_complete_pipeline_test(
+            tmp_path, "identity_4x4", "dataset", "matrix"
+        )
         
-        # Complete pipeline
-        reorder_result = run_reordering_test(matrix_path, "identity", test_env["env"])
-        assert reorder_result.returncode == 0
-        
-        reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "identity")
-        
-        mult_result = run_multiplication_test(reorder_output["csv_file"], "mock", test_env["env"])
-        assert mult_result.returncode == 0
-        
-        mult_output = validate_multiplication_output(test_env["results_dir"], "matrix", "identity", "mock")
-        
-        # Verify timing data
-        csv_data = mult_output["csv_data"]
-        
-        # Both reordering and multiplication timing should be present and positive
-        assert csv_data["reorder_time_ms"] >= 0, "Reordering time should be non-negative"
-        assert csv_data["mult_time_ms"] > 0, "Multiplication time should be positive"
-        
-        # Timing should be reasonable (not extremely large)
-        assert csv_data["reorder_time_ms"] < 10000, "Reordering time seems too large"
-        assert csv_data["mult_time_ms"] < 1000, "Multiplication time seems too large"
+        try:
+            # Complete pipeline
+            reorder_result = run_reordering_test(matrix_path, "identity", test_env["env"])
+            assert reorder_result.returncode == 0
+            
+            reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "identity")
+            
+            mult_result = run_multiplication_test(reorder_output["csv_file"], "mock", test_env["env"])
+            assert mult_result.returncode == 0
+            
+            mult_output = validate_multiplication_output(test_env["results_dir"], "matrix", "identity", "mock")
+            
+            # Verify timing data
+            csv_data = mult_output["csv_data"]
+            
+            # Both reordering and multiplication timing should be present and positive
+            assert csv_data["reorder_time_ms"] >= 0, "Reordering time should be non-negative"
+            assert csv_data["mult_time_ms"] > 0, "Multiplication time should be positive"
+            
+            # Timing should be reasonable (not extremely large)
+            assert csv_data["reorder_time_ms"] < 10000, "Reordering time seems too large"
+            assert csv_data["mult_time_ms"] < 1000, "Multiplication time seems too large"
+        finally:
+            cleanup_pipeline_test(raw_matrix_path)
     
     def test_internal_timing_integration(self, tmp_path):
         """Test that internal timing is properly integrated into results."""
-        matrices = get_test_matrices()
-        matrix_path = create_test_matrix(tmp_path, matrices["identity_4x4"], "dataset", "matrix")
-        test_env = setup_test_environment(tmp_path)
+        matrix_path, test_env, raw_matrix_path = setup_complete_pipeline_test(
+            tmp_path, "identity_4x4", "dataset", "matrix"
+        )
         
-        # Complete pipeline
-        reorder_result = run_reordering_test(matrix_path, "identity", test_env["env"])
-        assert reorder_result.returncode == 0
-        
-        reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "identity")
-        
-        mult_result = run_multiplication_test(reorder_output["csv_file"], "mock", test_env["env"])
-        assert mult_result.returncode == 0
-        
-        # Verify internal timing was detected and used
-        assert "Using internal timing:" in mult_result.stderr, "Internal timing should be detected and used"
-        
-        # Verify timing value is in reasonable range for mock kernel
-        mult_output = validate_multiplication_output(test_env["results_dir"], "matrix", "identity", "mock")
-        mult_time = mult_output["csv_data"]["mult_time_ms"]
-        
-        # Mock kernel should take 100-200ms based on its implementation
-        assert 50 < mult_time < 300, f"Mock timing should be ~100-200ms, got {mult_time}ms"
+        try:
+            # Complete pipeline
+            reorder_result = run_reordering_test(matrix_path, "identity", test_env["env"])
+            assert reorder_result.returncode == 0
+            
+            reorder_output = validate_reordering_output(test_env["results_dir"], "matrix", "identity")
+            
+            mult_result = run_multiplication_test(reorder_output["csv_file"], "mock", test_env["env"])
+            assert mult_result.returncode == 0
+            
+            # Verify internal timing was detected and used
+            assert "Using internal timing:" in mult_result.stderr, "Internal timing should be detected and used"
+            
+            # Verify timing value is in reasonable range for mock kernel
+            mult_output = validate_multiplication_output(test_env["results_dir"], "matrix", "identity", "mock")
+            mult_time = mult_output["csv_data"]["mult_time_ms"]
+            
+            # Mock kernel should take 100-200ms based on its implementation
+            assert 50 < mult_time < 300, f"Mock timing should be ~100-200ms, got {mult_time}ms"
+        finally:
+            cleanup_pipeline_test(raw_matrix_path)
