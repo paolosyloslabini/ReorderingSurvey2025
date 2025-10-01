@@ -124,25 +124,35 @@ The `mult_impl` argument selects a wrapper script from
 The framework includes a comprehensive test suite with clear organization:
 
 ```bash
-# Run complete test suite
-python tests/run_all.py
+# Run complete test suite (79 tests, ~75s)
+python -m pytest tests/ -v
 
 # Run specific test categories  
-python tests/run_all.py unit         # Unit tests (29 tests, ~14s)
-python tests/run_all.py integration  # Integration tests
-python tests/run_all.py e2e         # End-to-end workflows
+python -m pytest tests/unit/ -v         # Unit tests (44 tests, ~30s)
+python -m pytest tests/integration/ -v  # Integration tests (21 tests, ~25s)
+python -m pytest tests/e2e/ -v          # End-to-end workflows (8 tests, ~15s)
 
-# Quick pipeline validation
-python tests/run_all.py validation   # Complete reorder→multiply pipeline
+# Run specific test files
+python -m pytest tests/test_amd.py -v            # AMD reordering tests
+python -m pytest tests/test_unified_cusparse.py -v  # cuSPARSE tests
 
-# Fast development mode
-python tests/run_all.py --fast       # Stop on first failure
+# Fast development mode (stop on first failure)
+python -m pytest tests/ -x -v
 ```
+
+### Test Status
+Current test suite: **79 tests** with **66 passing (83.5%)** in typical environments
+
+#### Expected Test Failures
+Some tests may fail due to missing system dependencies (this is normal):
+- **AMD tests (3)**: Require `libsuitesparse-dev` system package
+- **Rabbit Order test (1)**: Requires building external tool via `scripts/bootstrap_ro.sh`
+- **E2E tests (8)**: Currently depend on external test matrices (known issue)
+- **GPU tests (1)**: Require CUDA/GPU environment
 
 ### Test Categories
 - **Unit tests**: Individual component testing (reordering, multiplication, modules)
 - **Integration tests**: Component interaction testing  
 - **End-to-end tests**: Complete research workflow simulation
-- **Validation**: Full pipeline verification
 
 See `tests/README.md` for detailed testing documentation and contributor guidelines.
