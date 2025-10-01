@@ -30,6 +30,41 @@
 
 ## Next Steps
 
+### Errors and Issues Found During Review
+
+1. **E2E Test Design Flaw** (8 tests affected):
+   - **Issue**: E2E tests in `tests/e2e/test_complete_workflows.py` expect matrices to exist in `Raw_Matrices/benchmark/` directory
+   - **Impact**: All 8 E2E workflow tests fail with FileNotFoundError
+   - **Root Cause**: Tests should create matrices internally using `create_test_matrix()` like unit/integration tests do
+   - **Fix Required**: Refactor E2E tests to be self-contained and not depend on external data
+   - **Severity**: Medium - core functionality is validated by unit/integration tests, but E2E workflows not tested
+
+2. **AMD Library Dependency** (3 tests affected):
+   - **Issue**: AMD reordering tests fail when SuiteSparse library not installed
+   - **Impact**: `test_amd_basic_functionality`, `test_amd_empty_matrix`, `test_amd_larger_matrix` fail
+   - **Root Cause**: Missing `libamd.so` system library
+   - **Fix Required**: Add `@pytest.mark.skipif` conditional to skip when library unavailable
+   - **Severity**: Low - AMD is optional, implementation is correct, just missing system dependency
+
+3. **GPU Pipeline Test** (1 test affected):
+   - **Issue**: `test_complete_pipeline_rcm_cusparse` fails in CPU-only environments
+   - **Impact**: RCM + cuSPARSE pipeline not validated without GPU
+   - **Root Cause**: Test requires CUDA/GPU but doesn't skip gracefully
+   - **Fix Required**: Add `@pytest.mark.gpu` decorator and skip when GPU unavailable
+   - **Severity**: Low - expected in non-GPU environments
+
+4. **Documentation Inconsistencies** (Fixed):
+   - ✅ README.md referenced non-existent test file `test_identity_reorder.py` (should be `tests/unit/test_reordering_techniques.py`)
+   - ✅ tests/README.md showed incorrect test runner commands (now recommends pytest directly)
+   - ✅ tests/README.md showed incorrect test counts (claimed "29 tests" but actual is 79 tests)
+   - ✅ TODO.md test coverage was outdated (claimed 60%, actual is 83.5%)
+
+5. **Missing Test Markers**:
+   - **Issue**: No pytest markers for optional dependencies (GPU, AMD, external tools)
+   - **Impact**: Tests fail instead of skipping gracefully when dependencies unavailable
+   - **Fix Required**: Add `@pytest.mark.gpu`, `@pytest.mark.amd`, `@pytest.mark.rabbit_order` markers
+   - **Severity**: Low - enhancement for better developer experience
+
 ### High Priority (Immediate)
 1. **Implement core reordering techniques**:
    - ✅ Add `reordering_amd.sh` using SuiteSparse AMD library

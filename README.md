@@ -11,7 +11,7 @@ This repository hosts an experimental framework for studying how matrix reorderi
 
 2. **Run a simple test**:
    ```bash
-   python -m pytest tests/test_identity_reorder.py -v
+   python -m pytest tests/unit/test_reordering_techniques.py::TestIdentityReordering -v
    ```
 
 3. **Run identity reordering on a sample matrix**:
@@ -74,6 +74,11 @@ loading the necessary modules on your cluster. Rabbit Order (`ro`) requires
 `g++` (≥ 4.9.2), `Boost` (≥ 1.58.0), `libnuma` (≥ 2.0.9), and
 `libtcmalloc_minimal` from `gperftools` (≥ 2.1); see
 `Programs/Reordering/Techniques/README.md` for detailed commands.
+
+**Note**: The bootstrap script may fail in sandboxed or restricted environments due to 
+Rabbit Order C++ compatibility requirements. This is expected and does not prevent core 
+framework functionality. All other reordering techniques (identity, RCM, AMD) work without 
+external builds.
 
 ## Python Environment
 
